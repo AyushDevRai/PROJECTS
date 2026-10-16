@@ -1,0 +1,1705 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Court Lead MQL Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky top bar with six tabs; work areas pair a form or stage with a live scorecard; court-surface palette */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --surface-2:#e8eeec; --line:#cdd8d4;
+  --ink:#14232b; --ink-2:#4a5d64; --ink-3:#7a8b90;
+  --court:#1d5c9e; --court-soft:#dbe7f4; --green:#2c7a57; --green-soft:#dcefe5;
+  --amber:#b7741a; --amber-soft:#f6ead6; --red:#b23b3b; --red-soft:#f6dede;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:8px; --scrim:rgba(20,35,43,.35);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f181c; --surface:#16232a; --surface-2:#1d2d35; --line:#2d414a;
+  --ink:#e6eef0; --ink-2:#a9bcc2; --ink-3:#7c9198;
+  --court:#6aa5e6; --court-soft:#1b3550; --green:#5cc192; --green-soft:#183a2c;
+  --amber:#e0a552; --amber-soft:#3b2e18; --red:#ec7d7d; --red-soft:#3e2121; --scrim:rgba(0,0,0,.55); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f181c; --surface:#16232a; --surface-2:#1d2d35; --line:#2d414a;
+  --ink:#e6eef0; --ink-2:#a9bcc2; --ink-3:#7c9198;
+  --court:#6aa5e6; --court-soft:#1b3550; --green:#5cc192; --green-soft:#183a2c;
+  --amber:#e0a552; --amber-soft:#3b2e18; --red:#ec7d7d; --red-soft:#3e2121; --scrim:rgba(0,0,0,.55); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14.5px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.topin{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:14px 0;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{display:flex;flex-direction:column;gap:2px;padding-bottom:12px}
+.brand h1{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.02em;margin:0;line-height:1;text-transform:uppercase}
+.brand span{color:var(--ink-3);font-size:12.5px}
+nav.tabs{display:flex;gap:2px;flex-wrap:wrap}
+nav.tabs button{font:600 13px var(--body);background:none;border:0;border-bottom:3px solid transparent;color:var(--ink-2);padding:8px 11px 11px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--court);border-bottom-color:var(--court)}
+nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--court);outline-offset:2px}
+.banner{margin-top:16px;padding:10px 14px;border-radius:var(--r);background:var(--amber-soft);color:var(--ink);font-size:13px}
+h2{font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:.01em;margin:28px 0 6px;text-wrap:balance}
+h3{font:600 13px var(--body);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);margin:0 0 10px}
+p.lede{color:var(--ink-2);max-width:70ch;margin:0 0 18px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.verchip{display:inline-block;font:600 11.5px var(--mono);padding:2px 8px;border-radius:999px;background:var(--court-soft);color:var(--court);vertical-align:middle;margin-left:6px}
+
+/* Flow */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:stretch}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:6px;position:relative;min-width:0}
+.stage .k{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--court)}
+.stage b{font-family:var(--display);font-size:20px;font-weight:600;line-height:1.1}
+.stage ul{margin:4px 0 0;padding-left:16px;color:var(--ink-2);font-size:13px}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-9px;top:50%;width:8px;height:2px;background:var(--line)}
+.loop{margin-top:10px;padding:10px 14px;border:1px dashed var(--line);border-radius:var(--r);color:var(--ink-2);font-size:13px}
+.loop b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11.5px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tscroll{overflow-x:auto}
+
+/* Grid */
+.grid3{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:6px;font-size:13px}
+.grid3 .h{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);align-self:end;padding:2px 4px}
+.grid3 .rh{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;padding-right:4px}
+.cell{border-radius:6px;padding:10px;min-height:72px;display:flex;flex-direction:column;gap:2px;border:2px solid transparent;transition:transform .25s,border-color .25s}
+.cell .id{font-family:var(--display);font-weight:700;font-size:20px;line-height:1}
+.cell .tx{font-size:12px;color:var(--ink-2)}
+.cell .ct{font-family:var(--mono);font-size:22px;line-height:1.1}
+.c-hot{background:var(--green-soft)} .c-mql{background:var(--court-soft)} .c-nur{background:var(--surface-2)} .c-alt{background:var(--amber-soft)} .c-none{background:var(--surface-2);opacity:.7}
+.cell.on{border-color:var(--ink);transform:scale(1.03)}
+.grid3.dim .cell:not(.on){opacity:.4}
+
+/* Form */
+.work{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;margin-top:18px;align-items:start}
+fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:16px;margin:0 0 14px;min-width:0}
+legend{font-family:var(--display);font-weight:600;font-size:18px;padding:0 6px}
+legend small{font:500 12px var(--body);color:var(--ink-3);margin-left:6px}
+.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.full{grid-column:1/-1}
+label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+input[type=text],input[type=email],input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+textarea{min-height:64px;resize:vertical}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;font-weight:400;color:var(--ink)}
+.chk input{margin-top:3px}
+.chk .pt{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.hint{font-size:12px;color:var(--ink-3)}
+.warn{font-size:12.5px;color:var(--amber)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:600 13.5px var(--body);border-radius:6px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn.pri{background:var(--court);border-color:var(--court);color:var(--surface)}
+.btn.dan{color:var(--red);border-color:var(--red)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.toast{font-size:13px;color:var(--green)}
+
+/* Scorecard aside */
+.score{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.meter .lab{font:600 11px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.meter .val{font-family:var(--mono);font-size:30px;line-height:1.1}
+.meter .val small{font-size:13px;color:var(--ink-3)}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--court);border-radius:3px;transition:width .5s ease}
+.bar.g i{background:var(--green)}
+.bar .th{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.verdict{border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.verdict .big{font-family:var(--display);font-weight:700;font-size:24px;line-height:1}
+.verdict.yes{background:var(--green-soft)} .verdict.no{background:var(--surface-2)} .verdict.alt{background:var(--amber-soft)} .verdict.dq{background:var(--red-soft)}
+.why{font-size:12.5px;color:var(--ink-2);margin:0;padding-left:16px}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.mini3 div{font:600 11px var(--mono);text-align:center;padding:5px 0;border-radius:3px;background:var(--surface-2);color:var(--ink-3)}
+.mini3 div.on{background:var(--court);color:var(--surface)}
+
+/* Demo */
+.demo{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;margin-top:14px;align-items:start}
+.steps{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.steps button{font:600 12px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:999px;padding:5px 11px;cursor:pointer}
+.steps button.done{color:var(--ink-2);background:var(--surface-2)}
+.steps button.cur{background:var(--court);border-color:var(--court);color:var(--surface)}
+.dstage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;min-height:340px;display:flex;flex-direction:column;gap:14px}
+.dstage .k{font:600 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--court)}
+.dstage h4{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.05;margin:0;text-wrap:balance}
+.dstage p{margin:0;color:var(--ink-2);max-width:60ch;font-size:15px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px}
+.facts dt{color:var(--ink-3);font-size:13px}
+.facts dd{margin:0}
+.items{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:6px;background:var(--surface-2);font-size:15px;animation:pop .35s ease both}
+.item b{font-family:var(--mono);white-space:nowrap}
+.item.pos b{color:var(--green)} .item.neg b{color:var(--red)} .item.mul b{color:var(--court)}
+.item.side-fit{border-left:3px solid var(--court)} .item.side-int{border-left:3px solid var(--green)}
+@keyframes pop{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+.math{font-family:var(--mono);font-size:16px;background:var(--surface-2);border-radius:6px;padding:12px;line-height:1.7;overflow-x:auto}
+.dside{display:flex;flex-direction:column;gap:16px}
+.dside .meter .val{font-size:44px}
+.dnav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto}
+
+/* Settings */
+.savebar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:4;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.savebar.dirty{border-color:var(--amber);background:var(--amber-soft)}
+.savebar .st{font-weight:600;font-size:13.5px}
+.savebar input{width:auto;flex:1 1 220px}
+.impact{font-size:12.5px;color:var(--ink-2);flex-basis:100%}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.sgrid .wide{grid-column:1/-1}
+.le{width:100%;border-collapse:collapse}
+.le td{padding:4px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+.le th{padding:4px}
+.le input[type=text],.le input[type=number],.le select{padding:6px 8px}
+.le input[type=number]{width:84px}
+.le td.c{text-align:center}
+.xbtn{border:0;background:none;color:var(--ink-3);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px}
+.xbtn:hover{color:var(--red)}
+.hist{font-size:12.5px;color:var(--ink-2);margin:6px 0 0;padding-left:16px}
+.histrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+
+/* Tracker */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .lab{font:600 11px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.kpi .val{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:12px;color:var(--ink-3)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.filters select,.filters input{width:auto;min-width:140px}
+.pill{display:inline-block;font:600 11.5px var(--body);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.p-mql{background:var(--green-soft);color:var(--green)} .p-no{background:var(--surface-2);color:var(--ink-2)} .p-alt{background:var(--amber-soft);color:var(--amber)} .p-dq{background:var(--red-soft);color:var(--red)} .p-st{background:var(--court-soft);color:var(--court)}
+tr.row{cursor:pointer} tr.row:hover td{background:var(--surface-2)}
+.empty{padding:28px;text-align:center;color:var(--ink-2)}
+.drawer{background:var(--surface);border:1px solid var(--court);border-radius:var(--r);padding:16px;margin-top:14px}
+textarea.csv{font-family:var(--mono);font-size:12px;min-height:140px}
+
+/* Scorecard sheet (shared with the download) */
+.scwrap{overflow-x:auto;margin-top:14px}
+
+
+/* Sales cycle */
+.phases{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:start}
+.ph{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ph>.k{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--court)}
+.ph>b{font-family:var(--display);font-size:19px;font-weight:600;line-height:1.1}
+.stg{border-left:3px solid var(--court);background:var(--surface-2);border-radius:0 6px 6px 0;padding:7px 9px;font-size:13px;display:flex;flex-direction:column;gap:2px}
+.stg.goal{border-left-color:var(--green);background:var(--green-soft)}
+.stg .o{font-size:11.5px;color:var(--ink-3)}
+.tag{display:inline-block;font:600 10.5px var(--body);letter-spacing:.04em;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:1px}
+.tag.d{background:var(--court-soft);color:var(--court)} .tag.n{background:var(--amber-soft);color:var(--amber)}
+.exits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.exit{border:1px dashed var(--line);border-radius:var(--r);padding:10px 12px;font-size:13px;color:var(--ink-2);min-width:0}
+.exit b{color:var(--ink);display:block;margin-bottom:2px}
+.gate{background:var(--court-soft);border-radius:var(--r);padding:14px 16px;margin-top:14px}
+.gate ul{margin:6px 0 0;padding-left:18px}
+.touches{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.touches li{font-size:12.5px}.touches li span{font-family:var(--mono);color:var(--ink-3);display:inline-block;min-width:46px}
+/* Pipeline board */
+.board{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.col{flex:0 0 228px;background:var(--surface-2);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:8px;min-height:140px}
+.col .ch{display:flex;flex-direction:column;gap:1px;padding:2px 4px 4px}
+.col .ch .k{font:600 10.5px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.col .ch b{font-size:13.5px}
+.col .ch span.m{font:500 11.5px var(--mono);color:var(--ink-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 10px;cursor:pointer;font-size:12.5px;display:flex;flex-direction:column;gap:4px;text-align:left;color:var(--ink);font-family:var(--body)}
+.card:hover{border-color:var(--court)}
+.card.od{box-shadow:inset 3px 0 0 var(--red)}
+.card .nm{font-weight:600;font-size:13px}
+.card .row2{display:flex;justify-content:space-between;gap:6px;color:var(--ink-3);font-size:11.5px}
+.card .na{color:var(--ink-2)} .card .na.late{color:var(--red)}
+.parked{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.parked button{font:600 12.5px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 12px;cursor:pointer}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.fr{display:grid;grid-template-columns:150px minmax(0,1fr) 110px;gap:10px;align-items:center;font-size:13px}
+.fr .fb{height:22px;background:var(--surface-2);border-radius:4px;position:relative;overflow:hidden}
+.fr .fb i{position:absolute;inset:0 auto 0 0;background:var(--court);border-radius:4px}
+.fr .fb i.w{background:var(--green)}
+.fr .nn{font-family:var(--mono);text-align:right;white-space:nowrap}
+/* Lead workspace sheet */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(620px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:21;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 18px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:14px}
+.sheet h3.t{font-family:var(--display);font-size:24px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0}
+.na-box{border-radius:var(--r);padding:12px 14px;background:var(--court-soft);display:flex;flex-direction:column;gap:3px}
+.na-box.late{background:var(--red-soft)}
+.na-box .lab{font:600 11px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.stepper{display:flex;flex-wrap:wrap;gap:4px}
+.stepper span{font:600 11px var(--body);padding:4px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-3)}
+.stepper span.done{color:var(--ink-2)} .stepper span.cur{background:var(--court);color:var(--surface)}
+.sub{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.tl li{display:grid;grid-template-columns:86px 1fr;gap:8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.tl li .d{font-family:var(--mono);color:var(--ink-3);font-size:11.5px}
+.tl li.stage b{color:var(--court)}
+.okline{font-size:12.5px} .okline.ok{color:var(--green)} .okline.no{color:var(--ink-3)}
+
+.gt{display:flex;flex-direction:column;gap:12px}
+.gr{display:grid;grid-template-columns:210px minmax(0,1fr) 170px;gap:12px;align-items:center;font-size:13px}
+.gtrack{min-width:0;position:relative}
+.gbar{display:flex;height:28px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.gbar i{height:100%;border-right:1px solid var(--surface);min-width:3px;font:600 10.5px var(--body);color:var(--surface);display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-style:normal}
+.gbar i.monsoon,.lg i.monsoon{background:repeating-linear-gradient(135deg,var(--ink-3) 0 4px,var(--surface-2) 4px 8px);color:var(--ink)}
+.gbar i.team,.lg i.team{background:var(--court)} .gbar i.dealer,.lg i.dealer{background:var(--amber)} .gbar i.deliver,.lg i.deliver{background:var(--green)}
+.gticks{position:relative;height:16px;border-top:1px solid var(--line);min-width:0}
+.gticks span{position:absolute;top:2px;transform:translateX(-50%);font:500 10.5px var(--mono);color:var(--ink-3);white-space:nowrap}
+.gticks span:first-child{transform:none}.gticks span:last-child{transform:translateX(-100%)}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2)}
+.lg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+@media (max-width:920px){.gr{grid-template-columns:1fr;gap:4px}.phases{grid-template-columns:1fr 1fr}.exits{grid-template-columns:1fr 1fr}.fr{grid-template-columns:110px minmax(0,1fr) 90px}.flow{grid-template-columns:1fr 1fr}.stage::after{display:none}.work,.demo{grid-template-columns:1fr}.score{position:static}.cols,.sgrid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.savebar{position:static}}
+@media (max-width:560px){.phases,.exits,.flow,.fg,.fg3,.checks{grid-template-columns:1fr}.wrap,.topin{padding-inline:16px}.dstage h4{font-size:26px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style id="scStyle"></style>
+
+<header class="top"><div class="topin">
+  <div class="brand"><h1>Court Lead MQL Desk</h1><span>Acrylic sports flooring · Fit × Intent qualification <span class="verchip" id="verChip">defaults</span></span></div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-fw" aria-selected="true" data-tab="fw">Framework</button>
+    <button role="tab" id="t-sx" aria-selected="false" data-tab="sx">Sales cycle</button>
+    <button role="tab" id="t-dm" aria-selected="false" data-tab="dm">Live demo</button>
+    <button role="tab" id="t-sc" aria-selected="false" data-tab="sc">Score a lead</button>
+    <button role="tab" id="t-pl" aria-selected="false" data-tab="pl">Pipeline</button>
+    <button role="tab" id="t-tr" aria-selected="false" data-tab="tr">Tracker</button>
+    <button role="tab" id="t-cd" aria-selected="false" data-tab="cd">Scorecard</button>
+    <button role="tab" id="t-st" aria-selected="false" data-tab="st">Scoring settings</button>
+  </nav>
+</div></header>
+
+<main class="wrap">
+<div id="dbBanner" class="banner" hidden></div>
+
+<!-- FRAMEWORK -->
+<section id="v-fw">
+  <h2>How a visitor becomes an MQL</h2>
+  <p class="lede">Channels and pages are where signals come from. Explicit answers build the Fit score, behaviour builds the Intent score, and the two together place every lead in one cell of the grid. Each cell has an owner and a response time.</p>
+  <div class="flow" id="fwFlow"></div>
+  <div class="loop" id="fwLoop"></div>
+  <h2>Routing grid</h2>
+  <div class="panel"><div class="grid3" id="fwGrid"></div></div>
+  <h2>Scoring rules</h2>
+  <div class="cols">
+    <div class="panel"><h3>Fit · ICP and explicit criteria</h3><div class="tscroll"><table id="fitTbl"></table></div></div>
+    <div class="panel"><h3>Intent · pages and behaviour</h3><div class="tscroll"><table id="intTbl"></table></div></div>
+    <div class="panel"><h3>Channel multiplier on intent</h3><div class="tscroll"><table id="chTbl"></table></div></div>
+    <div class="panel"><h3>Overrides</h3><div class="tscroll"><table id="ovTbl"></table></div></div>
+  </div>
+</section>
+
+<!-- SALES CYCLE -->
+<section id="v-sx" hidden>
+  <h2>From MQL to installed court</h2>
+  <p class="lede">Every MQL follows one sales cycle. Dealers close every sale, big or small; the sales team qualifies the lead, picks the dealer and hand-holds the deal through each stage. The grid cell decides how fast and how often we call. Stages marked <span class="tag d">draft</span> come from the pipeline draft; <span class="tag n">added</span> stages fill gaps a court project needs. The goal for every lead is a handed-over court that earns a referral, not just a closed order.</p>
+  <div class="phases" id="sxPhases"></div>
+  <div class="exits" id="sxExits"></div>
+  <div class="gate" id="sxGate"></div>
+  <h2>Expected timeline</h2>
+  <p class="lede">How long each grade should take from MQL to a handed-over court, built from the playbook and stage SLA settings. These are starting estimates. The table below compares them with real dates as leads move, so you can adjust the settings once there's enough data.</p>
+  <div class="filters"><div class="f" style="min-width:240px"><label for="sxBase">Site condition</label><select id="sxBase"><option value="ready">Base ready (existing concrete / asphalt, resurfacing)</option><option value="newbase">New base needed (adds curing)</option></select></div><div class="f" style="min-width:150px"><label for="sxMonth">MQL arrives in</label><select id="sxMonth"></select></div><div class="f" style="min-width:260px"><label for="sxRegion">Monsoon region</label><select id="sxRegion"></select></div></div>
+  <div class="panel"><div class="gt" id="sxGantt"></div><div class="tscroll" style="margin-top:16px"><table id="sxMile"></table></div></div>
+  <h2>Monsoon calendar</h2>
+  <p class="lede">Outdoor acrylic can't be applied in sustained rain, so installs wait out each region's monsoon. The cut-off dates show when an MQL must arrive to finish before the rains. Plan regional campaigns ahead of them. Deals that close after the cut-off become a <b>monsoon booking</b>: PO and advance now, install slot after the rains, with keep-warm calls until then. Edit the windows in Scoring settings.</p>
+  <div class="panel"><div class="tscroll"><table id="sxMon"></table></div></div>
+  <h2>Expected vs actual</h2>
+  <p class="lede">Each phase is measured from stage dates on real MQLs. A phase needs 5 leads before it shows a status; at 10 or more, a gap over 25% suggests a new setting value.</p>
+  <div class="panel"><div class="tscroll"><table id="sxCal"></table></div></div>
+  <h2>Playbook by routing grade</h2>
+  <p class="lede">How fast, how often and through which channel each grade is worked. Change these timings in Scoring settings.</p>
+  <div class="panel"><div class="tscroll"><table id="sxPb"></table></div></div>
+  <h2>Stage definitions</h2>
+  <p class="lede">What has to be true to enter each stage, the calls and activities that happen in it, who owns it, and what moves it on.</p>
+  <div class="panel"><div class="tscroll"><table id="sxDef"></table></div></div>
+</section>
+
+<!-- DEMO -->
+<section id="v-dm" hidden>
+  <h2>Live demo: watch one lead get scored</h2>
+  <p class="lede">Pick a scenario or one of your saved leads, then step through it. Use the arrow keys or the buttons. Every point shown comes from the current scoring settings.</p>
+  <div class="btns">
+    <div class="f" style="min-width:260px;flex:1 1 260px"><label for="dmPick">Lead to walk through</label><select id="dmPick"></select></div>
+    <label class="chk" for="dmDraft" id="dmDraftWrap" hidden><input type="checkbox" id="dmDraft">Use unsaved settings draft</label>
+  </div>
+  <div class="demo">
+    <div>
+      <div class="steps" id="dmSteps"></div>
+      <div class="dstage" id="dmStage"></div>
+    </div>
+    <div class="dside">
+      <div class="panel meters">
+        <div class="meter"><div class="lab">Fit</div><div class="val mono" id="dmFit">0</div><div class="bar"><i id="dmFitBar"></i><span class="th" id="dmFitTh"></span></div><div class="hint" id="dmFitHint"></div></div>
+        <div class="meter"><div class="lab" id="dmIntLab">Intent</div><div class="val mono" id="dmInt">0</div><div class="bar g"><i id="dmIntBar"></i><span class="th" id="dmIntTh"></span></div><div class="hint" id="dmIntHint"></div></div>
+      </div>
+      <div class="panel"><h3>Grid position</h3><div class="grid3" id="dmGrid"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SCORE -->
+<section id="v-sc" hidden>
+  <h2>Score a lead</h2>
+  <p class="lede">Fill this from the enquiry form, CRM record or call notes. The scorecard updates as you go. Save it to add the lead to the shared Tracker.</p>
+  <div class="btns"><button class="btn" id="exBtn" type="button">Fill with an example</button><button class="btn" id="clrBtn" type="button">Clear form</button></div>
+  <div class="work">
+    <form id="lf" autocomplete="off">
+      <fieldset><legend>Contact</legend><div class="fg">
+        <div class="f"><label for="name">Contact name</label><input type="text" id="name"></div>
+        <div class="f"><label for="company">Organisation</label><input type="text" id="company"></div>
+        <div class="f"><label for="email">Email</label><input type="email" id="email"></div>
+        <div class="f"><label for="phone">Phone / WhatsApp</label><input type="text" id="phone"></div>
+        <div class="f"><label for="city">City / PIN code</label><input type="text" id="city"></div>
+        <div class="f"><label for="region">Inside our service region?</label><select id="region"><option value="">Not known</option><option value="in">Yes</option><option value="out">No</option></select></div>
+      </div></fieldset>
+      <fieldset><legend>ICP &amp; explicit criteria <small>builds Fit</small></legend><div class="fg">
+        <div class="f full"><label for="org">Organisation type</label><select id="org"></select></div>
+        <div class="f"><label for="role">Role of contact</label><select id="role"><option value="">Not known</option><option value="dm">Decision-maker (owner, procurement, project head, principal)</option><option value="inf">Influencer (architect, coach, facility manager)</option><option value="oth">Other</option></select></div>
+        <div class="f"><label for="proj">Project type</label><select id="proj"><option value="">Not known</option><option value="new">New build</option><option value="resurf">Resurfacing / repair</option></select></div>
+        <div class="f"><label for="courts">Number of courts</label><select id="courts"><option value="">Not known</option><option value="1">1</option><option value="2">2</option><option value="3">3–5</option><option value="6">6 or more</option></select></div>
+        <div class="f"><label for="area">Area (m²), if known</label><input type="number" id="area" min="0" step="50"></div>
+        <div class="f"><label for="setting">Setting</label><select id="setting"><option value="out">Outdoor</option><option value="cov">Covered / semi-open</option><option value="in">Indoor competition</option></select></div>
+        <div class="f"><label for="timeline">Timeline</label><select id="timeline"></select></div>
+        <div class="f full"><label>Sports</label><div class="checks" id="sports"></div></div>
+        <div class="f full" id="fxWrap"><label>Other fit criteria</label><div class="checks" id="fx"></div></div>
+      </div><p class="warn" id="indoorWarn" hidden>Indoor competition court: confirm we can supply this before sales spends time on it.</p></fieldset>
+      <fieldset><legend>Channel <small>sets the multiplier</small></legend><div class="fg">
+        <div class="f"><label for="channel">Source channel</label><select id="channel"></select></div>
+        <div class="f" id="qWrap"><label for="qintent">Search query intent</label><select id="qintent"><option value="buy">Buying (cost, contractor, near me, quote)</option><option value="info">Informational (dimensions, what is, how to)</option></select></div>
+        <div class="f"><label for="campaign">Campaign / keyword / UTM</label><input type="text" id="campaign" placeholder="e.g. pickleball court cost bangalore"></div>
+        <div class="f"><label for="landing">Landing page URL</label><input type="text" id="landing" placeholder="/pickleball-court-flooring"></div>
+      </div></fieldset>
+      <fieldset><legend>Pages &amp; behaviour <small>builds Intent</small></legend><div class="fg">
+        <div class="f full"><label for="page">Deepest page reached</label><select id="page"></select></div>
+        <div class="f full"><label>Behaviour</label><div class="checks" id="beh"></div></div>
+        <div class="f"><label for="days">Days since last activity</label><input type="number" id="days" min="0" value="0"></div>
+        <div class="f"><label for="assigned">Assigned to</label><input type="text" id="assigned" placeholder="Sales rep or dealer"></div>
+        <div class="f full"><label for="notes">Notes</label><textarea id="notes"></textarea></div>
+      </div></fieldset>
+      <div class="btns"><button class="btn pri" id="saveBtn" type="submit">Save to tracker</button><span class="toast" id="saveMsg" role="status"></span></div>
+    </form>
+    <aside class="score" aria-live="polite">
+      <div class="meters">
+        <div class="meter"><div class="lab">Fit</div><div class="val" id="sFit">0<small id="sFitCap">/50</small></div><div class="bar"><i id="bFit"></i></div></div>
+        <div class="meter"><div class="lab">Intent</div><div class="val" id="sInt">0<small id="sIntCap">/50</small></div><div class="bar g"><i id="bInt"></i></div></div>
+      </div>
+      <div class="verdict no" id="verdict"><span class="big" id="vBig">Not enough data</span><span id="vRoute" class="hint"></span></div>
+      <div><h3>Grid position</h3><div class="mini3" id="mini"></div><div class="hint" style="margin-top:4px">Rows: Fit A/B/C · Columns: Intent 1/2/3</div></div>
+      <div><h3>Why</h3><ul class="why" id="why"></ul></div>
+    </aside>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="v-pl" hidden>
+  <h2>Sales pipeline</h2>
+  <p class="lede">Open MQLs by stage. Each card shows the next action from its grade's playbook; red means it's overdue. Click a card to log calls and activities or move it to another stage.</p>
+  <div class="kpis">
+    <div class="kpi"><div class="lab">Open pipeline</div><div class="val" id="pOpen">0</div><div class="sub" id="pOpenSub">&nbsp;</div></div>
+    <div class="kpi"><div class="lab">Overdue actions</div><div class="val" id="pOver">0</div><div class="sub" id="pOverSub">&nbsp;</div></div>
+    <div class="kpi"><div class="lab">Speed to lead</div><div class="val" id="pSpeed">–</div><div class="sub">Median hours to first touch</div></div>
+    <div class="kpi"><div class="lab">Win rate</div><div class="val" id="pWin">–</div><div class="sub">Won ÷ (won + lost)</div></div>
+  </div>
+  <div class="filters">
+    <select id="bGrade" aria-label="Filter by playbook"><option value="">All grades</option></select>
+    <input type="text" id="bQ" placeholder="Search name, org, dealer" aria-label="Search pipeline">
+    <label class="chk" for="bTender"><input type="checkbox" id="bTender">Show tender stages</label>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="parked" id="parked"></div>
+  <div class="cols">
+    <div class="panel"><h3>Funnel: MQL to handed-over court</h3><div class="funnel" id="funnel"></div></div>
+    <div class="panel"><h3>By grade</h3><div class="tscroll"><table id="byGrade"></table></div></div>
+    <div class="panel"><h3>Why deals are lost</h3><div class="tscroll"><table id="lostTbl"></table></div></div>
+    <div class="panel"><h3>Why MQLs are rejected</h3><div class="tscroll"><table id="junkTbl"></table></div></div>
+    <div class="panel wide" style="grid-column:1/-1"><h3>Dealer performance</h3><p class="hint" style="margin:-4px 0 8px">Dealers close every sale, so this table shows whether leads are being converted. Accepted on time is measured against each grade's playbook SLA.</p><div class="tscroll"><table id="dealerTbl"></table></div></div>
+  </div>
+</section>
+
+<!-- TRACKER -->
+<section id="v-tr" hidden>
+  <h2>Lead tracker</h2>
+  <p class="lede">Every saved lead, shared with everyone who can open this page. Click a lead to work it. The acceptance rate shows whether the MQL definition works: it is the share of MQLs that sales did not mark as junk.</p>
+  <div class="kpis">
+    <div class="kpi"><div class="lab">Leads</div><div class="val" id="kLeads">0</div><div class="sub" id="kLeadsSub">&nbsp;</div></div>
+    <div class="kpi"><div class="lab">MQLs</div><div class="val" id="kMql">0</div><div class="sub" id="kMqlSub">&nbsp;</div></div>
+    <div class="kpi"><div class="lab">Sales acceptance</div><div class="val" id="kAcc">–</div><div class="sub" id="kAccSub">&nbsp;</div></div>
+    <div class="kpi"><div class="lab">Won</div><div class="val" id="kWon">0</div><div class="sub" id="kWonSub">&nbsp;</div></div>
+  </div>
+  <div class="cols">
+    <div class="panel"><h3>Leads by grid cell</h3><div class="grid3" id="trGrid"></div></div>
+    <div class="panel"><h3>By channel</h3><div class="tscroll"><table id="chPerf"></table></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <div class="filters">
+      <select id="fMql" aria-label="Filter by MQL"><option value="">All leads</option><option value="1">MQLs only</option><option value="0">Not MQL</option></select>
+      <select id="fStatus" aria-label="Filter by stage"><option value="">Any stage</option></select>
+      <select id="fCh" aria-label="Filter by channel"><option value="">Any channel</option></select>
+      <input type="text" id="fQ" placeholder="Search name, org, city, dealer" aria-label="Search">
+      <button class="btn" id="csvBtn" type="button">Export CSV for CRM</button>
+    </div>
+    <div class="tscroll"><table id="leadTbl"><thead><tr><th>Date</th><th>Lead</th><th>Segment</th><th>Channel</th><th>Fit</th><th>Intent</th><th>Cell</th><th>MQL</th><th>Stage</th><th>Next action</th></tr></thead><tbody id="leadBody"></tbody></table></div>
+    <div class="empty" id="leadEmpty">No leads yet. Use <b>Score a lead</b> to add the first one; it will appear here for the whole team.</div>
+    
+    <div id="csvBox" hidden><p class="hint">Copy this into your CRM import:</p><textarea class="csv" id="csvText" readonly></textarea></div>
+  </div>
+</section>
+
+<!-- SCORECARD -->
+<section id="v-cd" hidden>
+  <h2>One-page scorecard</h2>
+  <p class="lede">A one-page reference for sales and marketing, built from the saved scoring settings, so it always matches what the scorer uses. Download it as a page you can open and print.</p>
+  <div class="btns"><button class="btn pri" id="scDl" type="button">Download scorecard</button><span class="toast" id="scMsg" role="status"></span></div>
+  <div class="scwrap"><div id="scSheet"></div></div>
+  <div id="scBox" hidden><p class="hint">Downloads aren't available here. Copy this HTML into a file named scorecard.html and open it in a browser to print:</p><textarea class="csv" id="scText" readonly></textarea></div>
+</section>
+
+<!-- SETTINGS -->
+<section id="v-st" hidden>
+  <h2>Scoring settings</h2>
+  <p class="lede">Edit points, thresholds and multipliers here. Changes stay as a draft until you save them as a new version. Every version is kept, so you can go back. The Framework, Live demo, Score a lead and Scorecard tabs all use the saved version.</p>
+  <div class="savebar" id="saveBar">
+    <span class="st" id="stState">No unsaved changes</span>
+    <input type="text" id="stNote" placeholder="What changed and why (e.g. raised developer to +25 after Q3 review)" aria-label="Change note">
+    <button class="btn pri" id="stSave" type="button">Save as new version</button>
+    <button class="btn" id="stDiscard" type="button">Discard changes</button>
+    <button class="btn" id="stReset" type="button">Load defaults</button>
+    <span class="toast" id="stMsg" role="status"></span>
+    <div class="impact" id="stImpact"></div>
+  </div>
+  <div class="sgrid" id="stBody"></div>
+  <h2>Version history</h2>
+  <div class="panel"><div id="stHist"><p class="hint">Saved versions will be listed here.</p></div>
+    <div class="btns" style="margin-top:12px"><button class="btn" id="rescoreBtn" type="button">Rescore saved leads with current version</button><span class="toast" id="rescoreMsg" role="status"></span></div>
+    <p class="hint">Rescoring updates Fit, Intent, cell and MQL on every saved lead. A lead's stage changes only if sales hasn't worked it yet.</p>
+  </div>
+</section>
+</main>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-label="Lead workspace"></aside>
+
+<script>
+/* ================= Default model ================= */
+const DEFAULTS={
+  rules:{fitMql:25,intentMql:20,fitA:35,intent1:35,fitCap:50,intentCap:50,acceptTarget:60,decayFactor:0.75,decayDays:30,searchBuy:1.5,searchInfo:0.8,tier1QuoteFast:true},
+  orgs:[
+    {v:"contractor",l:"Sports infra contractor / court builder",tier:"1",pts:20},
+    {v:"school",l:"School, university or academy",tier:"1",pts:20},
+    {v:"municipal",l:"Municipal / government sports authority",tier:"1",pts:20},
+    {v:"developer",l:"Real estate developer / gated community",tier:"1",pts:20},
+    {v:"club",l:"Sports club (tennis, pickleball, multi-sport)",tier:"1",pts:20},
+    {v:"architect",l:"Architect / landscape consultant",tier:"2",pts:12},
+    {v:"hospitality",l:"Hotel or resort",tier:"2",pts:12},
+    {v:"corporate",l:"Corporate campus",tier:"2",pts:12},
+    {v:"homeowner",l:"Homeowner (backyard court)",tier:"3",pts:5},
+    {v:"dealer",l:"Dealer / distributor",tier:"P",pts:0},
+    {v:"excluded",l:"Student, job seeker, competitor or vendor",tier:"X",pts:-50}
+  ],
+  roles:{dm:10,inf:6},
+  size:{bigCourts:3,bigArea:2000,bigPts:10,smallPts:5},
+  region:{in:5,out:-15},
+  project:{new:5,resurf:3},
+  indoor:-5,
+  fitExtras:[],
+  timeline:[{v:"t0",l:"0–3 months",pts:0},{v:"t3",l:"3–6 months",pts:0},{v:"t6",l:"6–12 months",pts:0},{v:"t12",l:"12+ months",pts:0}],
+  pages:[
+    {v:"quote",l:"Request a quote form",tier:"P1",pts:25,fast:false},
+    {v:"site",l:"Site-visit request",tier:"P1",pts:25,fast:true},
+    {v:"contact",l:"Contact form",tier:"P1",pts:25,fast:false},
+    {v:"whatsapp",l:"WhatsApp click-to-chat",tier:"P1",pts:25,fast:false},
+    {v:"eval",l:"Specs, product systems, case studies or pricing guide",tier:"P2",pts:10,fast:false},
+    {v:"edu",l:"Blog, court dimension guides, maintenance tips",tier:"P3",pts:3,fast:false},
+    {v:"noise",l:"Only About / Investor pages",tier:"P0",pts:0,fast:false}
+  ],
+  beh:[
+    {v:"spec",l:"Downloaded spec sheet / certification",pts:10,fast:false},
+    {v:"cases",l:"Viewed 2+ case studies",pts:8,fast:false},
+    {v:"calc",l:"Used cost calculator / court estimator",pts:12,fast:false},
+    {v:"return",l:"Returned within 7 days (2+ sessions)",pts:8,fast:false},
+    {v:"colours",l:"Viewed colour / system options",pts:5,fast:false},
+    {v:"video",l:"Watched project video > 50%",pts:4,fast:false},
+    {v:"emailopen",l:"Opened 2+ nurture emails",pts:3,fast:false},
+    {v:"emailclick",l:"Clicked a nurture email",pts:5,fast:false},
+    {v:"rfq",l:"Shared RFQ / tender document",pts:0,fast:true},
+    {v:"careers",l:"Visited careers page",pts:-10,fast:false}
+  ],
+  channels:[
+    {v:"paid_search",l:"Paid search (Google Ads)",m:1,search:true},
+    {v:"organic",l:"Organic search / SEO",m:1,search:true},
+    {v:"linkedin",l:"LinkedIn",m:1.2,search:false},
+    {v:"instagram",l:"Instagram",m:0.7,search:false},
+    {v:"facebook",l:"Facebook",m:0.7,search:false},
+    {v:"youtube",l:"YouTube",m:0.7,search:false},
+    {v:"referral",l:"Referral / word of mouth",m:1.3,search:false},
+    {v:"direct",l:"Direct (typed URL, call)",m:1.3,search:false},
+    {v:"dealer_ref",l:"Dealer referral",m:1.3,search:false},
+    {v:"marketplace",l:"B2B marketplace (IndiaMART, TradeIndia)",m:1.0,search:false},
+    {v:"event",l:"Trade show / event",m:1.2,search:false},
+    {v:"email",l:"Email campaign",m:1.0,search:false},
+    {v:"unknown",l:"Unknown",m:1.0,search:false}
+  ],
+  cells:{A1:"Hot MQL · call within 4 hrs",A2:"MQL · call within 24 hrs",A3:"Targeted nurture",B1:"MQL · call within 24 hrs",B2:"MQL · inside sales qualifies",B3:"Nurture",C1:"Dealer or self-serve quote",C2:"Nurture",C3:"No action"},
+  playbooks:{
+    hot:{label:"Hot · A1 or fast-track",firstHrs:4,recycleDay:10,dealerHrs:24,surveyDays:3,quoteDays:3,followDays:2,dealerUpdateDays:3,asm:true,
+      touches:[{day:0,a:"Call 1 by inside sales"},{day:0,a:"Call 2 + WhatsApp intro with catalogue and court photos"},{day:1,a:"Call 3"},{day:2,a:"AI bot call + WhatsApp"},{day:4,a:"Call 4 + email with a nearby case study"},{day:7,a:"Call from the sales team lead"}]},
+    mql:{label:"MQL · A2 or B1",firstHrs:24,recycleDay:14,dealerHrs:24,surveyDays:7,quoteDays:5,followDays:3,dealerUpdateDays:7,asm:false,
+      touches:[{day:0,a:"Call 1 by inside sales"},{day:1,a:"Call 2 + WhatsApp intro"},{day:2,a:"AI bot call"},{day:5,a:"Call 3 + email with case study"},{day:9,a:"Final call"}]},
+    qualify:{label:"MQL · B2 (inside sales qualifies)",firstHrs:48,recycleDay:21,dealerHrs:48,surveyDays:10,quoteDays:7,followDays:4,dealerUpdateDays:7,asm:false,
+      touches:[{day:0,a:"Call 1 by inside sales"},{day:1,a:"AI bot call"},{day:3,a:"Call 2 + WhatsApp"},{day:7,a:"Email + WhatsApp with court cost guide"},{day:13,a:"Final call"}]}
+  },
+  dealers:[{v:"d1",l:"Dealer 1",area:"Territory 1"},{v:"d2",l:"Dealer 2",area:"Territory 1"}],
+  monsoon:{on:true,regions:[
+    {v:"kerala",l:"Kerala, coastal Karnataka, Goa",match:"kerala, kochi, cochin, trivandrum, thiruvananthapuram, kozhikode, calicut, thrissur, mangalore, mangaluru, udupi, goa",from:"06-01",to:"10-15"},
+    {v:"west",l:"West & central (Maharashtra, Gujarat, MP)",match:"mumbai, thane, navi mumbai, pune, nashik, nagpur, maharashtra, gujarat, ahmedabad, surat, vadodara, rajkot, indore, bhopal, madhya pradesh",from:"06-10",to:"10-05"},
+    {v:"deccan",l:"Deccan (Bengaluru, Hyderabad)",match:"bengaluru, bangalore, mysuru, mysore, hyderabad, secunderabad, telangana, karnataka",from:"06-05",to:"10-15"},
+    {v:"north",l:"North (Delhi NCR, UP, Punjab, Haryana, Rajasthan)",match:"delhi, new delhi, noida, gurgaon, gurugram, ghaziabad, faridabad, lucknow, kanpur, varanasi, uttar pradesh, chandigarh, punjab, haryana, jaipur, jodhpur, rajasthan, dehradun",from:"06-28",to:"09-25"},
+    {v:"east",l:"East & North-east",match:"kolkata, west bengal, bhubaneswar, odisha, patna, bihar, ranchi, jharkhand, guwahati, assam, shillong",from:"06-05",to:"10-10"},
+    {v:"tn",l:"Tamil Nadu & coastal AP (north-east monsoon)",match:"chennai, tamil nadu, coimbatore, madurai, trichy, tiruchirappalli, salem, puducherry, pondicherry, nellore, tirupati",from:"10-15",to:"12-20"},
+    {v:"other",l:"Anywhere else (default)",match:"*",from:"06-10",to:"09-30"}]},
+  sla:{discoveryDays:2,negotiationDays:5,tenderDays:14,hotDays:7,kickoffDays:7,curingDays:28,installDays:15,handoverDays:30,bookedTouchDays:21,slotConfirmDays:14,recallDays:30,dealerDirectCheckDays:7}
+};
+const CELLCLS={A1:"c-hot",A2:"c-mql",A3:"c-nur",B1:"c-mql",B2:"c-mql",B3:"c-nur",C1:"c-alt",C2:"c-nur",C3:"c-none"};
+const TIERS=[["1","Tier 1"],["2","Tier 2"],["3","Tier 3"],["P","Partner track"],["X","Disqualify"]];
+const SPORTS=["Tennis","Pickleball","Badminton","Basketball","Volleyball","Multi-sport"];
+const JUNK_REASONS=["Not a decision-maker","No real project","Out of region, no dealer","Wrong product (indoor / PVC / wood)","Duplicate","Student / job seeker / vendor","Unreachable","Other"];
+const LOST_REASONS=["Lost to competitor","Plan dropped by client","Price too high","Dealer dropped / unresponsive","Base not ready","Budget not approved","Tender lost (not L1)","Monsoon booking cancelled","Other"];
+const BASES=[["","Not known"],["concrete","Existing concrete base"],["asphalt","Existing asphalt base"],["newbase","New base needed"],["resurf","Resurfacing an existing court"]];
+const PERSONAL=/@(gmail|yahoo|hotmail|outlook|rediffmail|icloud|live|aol|proton(mail)?)\./i;
+const H=36e5, D=864e5;
+
+/* ================= Sales stages ================= */
+const STAGES=[
+  {k:"new",l:"New MQL",ph:"contact",own:"Sales team",src:"n"},
+  {k:"attempt",l:"Attempting contact",ph:"contact",own:"Sales team",src:"d",doc:"No answer → Second attempt"},
+  {k:"aibot",l:"AI bot follow-up",ph:"contact",own:"AI bot",src:"d",doc:"AI Boat"},
+  {k:"connected",l:"Connected · discovery",ph:"qualify",own:"Sales team",src:"d",doc:"Answered"},
+  {k:"sql",l:"SQL · dealer assigned",ph:"opp",own:"Dealer",src:"d",doc:"Qualified (Dealer Assigned)"},
+  {k:"survey",l:"Site visit & base survey",ph:"opp",own:"Dealer",src:"n"},
+  {k:"proposal",l:"Proposal / quote sent",ph:"opp",own:"Dealer",src:"n"},
+  {k:"followup",l:"Client follow-up · objections",ph:"opp",own:"Sales team",src:"d",doc:"Follow-up with client",track:"std"},
+  {k:"negotiation",l:"Negotiation",ph:"close",own:"Dealer",src:"d",doc:"Negotiation",track:"std"},
+  {k:"bid",l:"Tender bid submitted",ph:"close",own:"Dealer",src:"n",track:"tender"},
+  {k:"eval",l:"Technical / L1 evaluation",ph:"close",own:"Dealer",src:"n",track:"tender"},
+  {k:"hot",l:"Hot · closing this week",ph:"close",own:"Dealer",src:"d",doc:"Hot"},
+  {k:"won",l:"Closed won · PO + advance",ph:"deliver",own:"Dealer",src:"d",doc:"Close won"},
+  {k:"booked",l:"Won · monsoon slot booked",ph:"deliver",own:"Dealer",src:"n"},
+  {k:"install",l:"Base check & installation",ph:"deliver",own:"Dealer",src:"n"},
+  {k:"handover",l:"Handed over · advocacy",ph:"deliver",own:"Sales team + marketing",src:"n",goal:true},
+  {k:"lost",l:"Closed lost",ph:"out",src:"d",doc:"Close Lost"},
+  {k:"junk",l:"Not qualified (junk)",ph:"out",src:"d",doc:"Not qualified (Junk)"},
+  {k:"notready",l:"Not ready · recall",ph:"park",src:"n"},
+  {k:"nurture",l:"Nurture (not MQL)",ph:"park"},
+  {k:"dealer_direct",l:"Dealer / self-serve (C1)",ph:"park"},
+  {k:"partner",l:"Partner track",ph:"park"},
+  {k:"disq",l:"Disqualified",ph:"out"}
+];
+const ST=Object.fromEntries(STAGES.map(s=>[s.k,s]));
+const SEQ={std:["new","attempt","aibot","connected","sql","survey","proposal","followup","negotiation","hot","won","install","handover"],
+           tender:["new","attempt","aibot","connected","sql","survey","proposal","bid","eval","hot","won","install","handover"]};
+const RANK={}; SEQ.std.forEach((k,i)=>RANK[k]=i); RANK.bid=RANK.followup; RANK.eval=RANK.negotiation; RANK.booked=RANK.won;
+const CONTACT=["new","attempt","aibot"];
+const OPEN_STAGES=[...SEQ.std,"bid","eval","booked"].filter(k=>k!=="handover");
+const BOARD_COLS=["new","attempt","aibot","connected","sql","survey","proposal","followup","negotiation","bid","eval","hot","won","booked","install","handover"];
+const LEGACY={"New MQL":"new","Contacted":"attempt","Accepted by sales":"connected","Rejected by sales":"junk","SQL / proposal":"sql","Won":"won","Lost":"lost","Nurture":"nurture","Dealer / self-serve":"dealer_direct","Partner track":"partner","Disqualified":"disq"};
+const stageOf=l=>l.stage||LEGACY[l.status]||"new";
+const ACT=[
+  {k:"call",l:"Call",outs:["Answered","No answer","Busy / switched off","Asked to call back"]},
+  {k:"whatsapp",l:"WhatsApp",outs:["Sent","Replied"]},
+  {k:"aibot",l:"AI bot call / chat",outs:["Responded","No response"]},
+  {k:"email",l:"Email",outs:["Sent","Replied"]},
+  {k:"meeting",l:"Meeting",outs:["Held","Rescheduled"]},
+  {k:"site",l:"Site visit / base survey",outs:["Scheduled","Done","Rescheduled"]},
+  {k:"samples",l:"Samples / colour chart sent",outs:["Sent"]},
+  {k:"quote",l:"Quote / BOQ sent",outs:["Sent","Revised"]},
+  {k:"dealer",l:"Dealer follow-up",outs:["Accepted lead","Declined lead","Update received","No update"]},
+  {k:"client",l:"Client follow-up (feedback / objections)",outs:["Positive","Objection: price","Objection: base readiness","Objection: competitor","Objection: approval pending","Objection: timeline slipped"]},
+  {k:"note",l:"Note",outs:["Note"]}
+];
+const REACHED=o=>["Answered","Asked to call back","Replied","Responded","Held"].includes(o);
+const NOREACH=o=>["No answer","Busy / switched off","No response"].includes(o);
+
+const clone=o=>JSON.parse(JSON.stringify(o));
+function normalize(c){
+  c=c||{}; const d=clone(DEFAULTS), out={...d,...c};
+  ["rules","roles","size","region","project","cells","sla"].forEach(k=>out[k]={...d[k],...(c[k]||{})});
+  ["orgs","fitExtras","timeline","pages","beh","channels","dealers"].forEach(k=>{if(!Array.isArray(out[k]))out[k]=d[k];});
+  out.playbooks={}; Object.keys(d.playbooks).forEach(k=>{const p={...d.playbooks[k],...((c.playbooks||{})[k]||{})}; if(!Array.isArray(p.touches))p.touches=d.playbooks[k].touches; out.playbooks[k]=p;});
+  out.monsoon={...d.monsoon,...(c.monsoon||{})}; if(!Array.isArray(out.monsoon.regions)) out.monsoon.regions=d.monsoon.regions;
+  if(typeof out.indoor!=="number")out.indoor=d.indoor;
+  return out;
+}
+let CFG=normalize(DEFAULTS), META={version:0,at:null,note:"Defaults"}, draft=clone(CFG);
+
+/* ================= Scoring ================= */
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const num=x=>{const n=parseFloat(x);return isFinite(n)?n:0;};
+const sgn=n=>(n>0?"+":n<0?"−":"")+Math.abs(n);
+const findV=(arr,v)=>(arr||[]).find(x=>x.v===v);
+const tierName=t=>({1:"Tier 1",2:"Tier 2",3:"Tier 3",P:"Partner",X:"Disqualify"})[t]||"";
+function chMult(cfg,ch,q){const c=findV(cfg.channels,ch); if(!c) return 1; return c.search?(q==="info"?num(cfg.rules.searchInfo):num(cfg.rules.searchBuy)):num(c.m);}
+
+function score(L,cfg){
+  const R=cfg.rules, items=[];
+  const add=(stage,side,label,pts)=>{if(pts) items.push({stage,side,label,pts:num(pts)});};
+  const o=findV(cfg.orgs,L.org);
+  if(o) add("explicit","fit",`${o.l}${["1","2","3"].includes(o.tier)?" ("+tierName(o.tier)+")":""}`,o.pts);
+  if(L.role==="dm") add("explicit","fit","Decision-maker",cfg.roles.dm); else if(L.role==="inf") add("explicit","fit","Influencer",cfg.roles.inf);
+  const c=num(L.courts), area=num(L.area);
+  if(c>=num(cfg.size.bigCourts)||(area&&area>=num(cfg.size.bigArea))) add("explicit","fit",`${cfg.size.bigCourts}+ courts or ${Number(cfg.size.bigArea).toLocaleString()} m²+`,cfg.size.bigPts);
+  else if(c>=1) add("explicit","fit","Smaller project (1–2 courts)",cfg.size.smallPts);
+  if(L.region==="in") add("explicit","fit","Inside service region",cfg.region.in); else if(L.region==="out") add("explicit","fit","Outside service region",cfg.region.out);
+  if(L.proj==="new") add("explicit","fit","New build",cfg.project.new); else if(L.proj==="resurf") add("explicit","fit","Resurfacing",cfg.project.resurf);
+  if(L.setting==="in") add("explicit","fit","Indoor competition court",cfg.indoor);
+  (L.fx||[]).forEach(v=>{const x=findV(cfg.fitExtras,v); if(x) add("explicit","fit",x.l,x.pts);});
+  const fitRaw=items.filter(i=>i.side==="fit").reduce((s,i)=>s+i.pts,0);
+  const fit=clamp(Math.round(fitRaw),0,num(R.fitCap));
+  const p=findV(cfg.pages,L.page);
+  if(p) add("page","int",`${p.tier} page: ${p.l}`,p.pts);
+  (L.beh||[]).forEach(v=>{const b=findV(cfg.beh,v); if(b) add("behaviour","int",b.l,b.pts);});
+  const t=findV(cfg.timeline,L.timeline); if(t) add("behaviour","int",`Timeline ${t.l}`,t.pts);
+  const rawI=Math.max(0,items.filter(i=>i.side==="int").reduce((s,i)=>s+i.pts,0));
+  const m=chMult(cfg,L.channel,L.qintent);
+  const dd=Math.max(1,num(R.decayDays)||30);
+  const decay=Math.pow(num(R.decayFactor)||1,Math.floor(num(L.days)/dd));
+  const intentUncapped=Math.round(rawI*m*decay);
+  const intent=clamp(intentUncapped,0,num(R.intentCap));
+  const fastReasons=[];
+  if(p&&p.fast) fastReasons.push(p.l.toLowerCase());
+  (L.beh||[]).forEach(v=>{const b=findV(cfg.beh,v); if(b&&b.fast) fastReasons.push(b.l.toLowerCase());});
+  if(R.tier1QuoteFast&&o&&o.tier==="1"&&L.page==="quote") fastReasons.push("Tier 1 quote request");
+  const fast=fastReasons.length>0;
+  const fr=fit>=num(R.fitA)?"A":fit>=num(R.fitMql)?"B":"C";
+  const ic=intent>=num(R.intent1)?"1":intent>=num(R.intentMql)?"2":"3";
+  const cell=fr+ic, meets=fit>=num(R.fitMql)&&intent>=num(R.intentMql);
+  let mql=false,stage,kind,label,route;
+  if(o&&o.tier==="X"){kind="dq";label="Disqualified";stage="disq";route="Remove from marketing lists.";}
+  else if(o&&o.tier==="P"){kind="alt";label="Partner track";stage="partner";route="Send to the channel / dealer team.";}
+  else if(fast||meets){mql=true;kind="yes";label=fast?"MQL · fast-track":"MQL";stage="new";
+    route=fast&&!meets?`Fast-track (${fastReasons.join(", ")}) · hot playbook, call within ${cfg.playbooks.hot.firstHrs} hrs`:cfg.cells[cell]+(fast?` · fast-track: ${fastReasons.join(", ")}`:"");}
+  else if(cell==="C1"){kind="alt";label="Not MQL";stage="dealer_direct";route=cfg.cells.C1;}
+  else {kind="no";label="Not MQL";stage="nurture";route=cfg.cells[cell];}
+  const notes=[];
+  if(PERSONAL.test(L.email||"")&&o&&o.tier!=="3") notes.push("Personal email on a business enquiry: verify the organisation");
+  return {fit,fitRaw,intent,rawI,intentUncapped,mult:m,decay,cell,mql,fast,fastReasons,stage,kind,label,route,items,notes};
+}
+
+/* ================= Playbook logic ================= */
+function pbKey(l){
+  if(!l.mql) return null;
+  if(l.fastTrack||l.cell==="A1") return "hot";
+  if(l.cell==="A2"||l.cell==="B1") return "mql";
+  if(l.cell==="B2") return "qualify";
+  return "hot";
+}
+function nextAction(l,cfg=CFG){
+  const st=stageOf(l), pb=cfg.playbooks[pbKey(l)]||cfg.playbooks.mql, S=cfg.sla, now=Date.now();
+  const at=l.stageAt||l.createdAt||now, c0=l.createdAt||now;
+  let t=null,due=null,own=ST[st]?.own||"";
+  if(st==="new"){t=(pb.touches[0]||{}).a||"First call"; due=c0+num(pb.firstHrs)*H;}
+  else if(st==="attempt"||st==="aibot"){
+    const i=num(l.attempts);
+    if(i<pb.touches.length){const tc=pb.touches[i]; t=tc.a; due=Math.max(c0+num(tc.day)*D+(num(tc.day)===0?num(pb.firstHrs)*H:0),(l.lastTouchAt||0)+2*H);}
+    else {t="All attempts used: move to Not ready and recycle"; due=c0+num(pb.recycleDay)*D;}
+  }
+  else if(st==="connected"){t="Discovery call: complete the SQL checklist and name a dealer"; due=at+num(S.discoveryDays)*D;}
+  else if(st==="sql"){
+    if(!String(l.dealer||"").trim()){t="Assign another dealer for this territory"; due=at; own="Sales team";}
+    else if(!l.dealerAcceptedAt){t=`${l.dealer} accepts the lead and calls the client`+(pb.asm?"; sales team sets up a 3-way intro call":"")+". Reassign if the SLA is missed"; due=(l.sqlAt||at)+num(pb.dealerHrs)*H; own="Dealer · sales team chases";}
+    else {t=`${l.dealer} books the site visit`; due=l.dealerAcceptedAt+num(pb.surveyDays)*D; own="Dealer";}
+  }
+  else if(st==="survey"){t=`Site visit and base survey, then quote within ${pb.quoteDays} days`; due=at+(num(pb.surveyDays)+num(pb.quoteDays))*D;}
+  else if(st==="proposal"){t=l.track==="tender"?"Prepare and submit the tender bid":"Inside sales calls the client for feedback on the quote"; due=at+(l.track==="tender"?num(S.tenderDays):num(pb.followDays))*D;}
+  else if(st==="followup"){t="Answer objections; revise the quote with the dealer if needed"; due=at+num(pb.dealerUpdateDays)*D;}
+  else if(st==="negotiation"){t="Agree final price, payment terms and start date"; due=at+num(S.negotiationDays)*D;}
+  else if(st==="bid"){t="Track bid opening; answer technical queries"; due=at+num(S.tenderDays)*D;}
+  else if(st==="eval"){t="Follow the technical / L1 result"; due=at+num(S.tenderDays)*D;}
+  else if(st==="hot"){t="Collect PO and advance; fix the site-ready date"; due=at+num(S.hotDays)*D;
+    const reg=regionFor(l.city,cfg), m=monsoonDelay(now+(num(S.hotDays)+num(S.kickoffDays)+(l.base==="newbase"?num(S.curingDays):0))*D,num(S.installDays),reg,cfg);
+    if(m.resumeAt) t+=`. Rains ahead (${reg.l}): offer a monsoon booking, advance now and install from ${fmtDate(m.resumeAt)}`;}
+  else if(st==="booked"){const slot=l.bookedSlotAt||at; own="Sales team";
+    if(now>=slot){t="Slot date reached: dealer starts installation, move to Base check & installation"; due=slot; own="Dealer";}
+    else{const keep=(Math.max(l.lastTouchAt||0,at))+num(S.bookedTouchDays)*D, conf=slot-num(S.slotConfirmDays)*D;
+      if(conf<=keep){t=`Confirm the dealer's crew and material for the ${fmtDate(slot)} slot; send the client the site-prep checklist`; due=conf;}
+      else{t=`Keep-warm call: reconfirm the ${fmtDate(slot)} slot and answer any doubts`; due=keep;}}}
+  else if(st==="won"){t=l.base==="newbase"?`Dealer schedules the new base; allow ${S.curingDays} days curing before coating`:"Dealer places the material order and fixes the install date"; due=at+num(S.kickoffDays)*D;
+    const reg=regionFor(l.city,cfg), m=monsoonDelay(at+(num(S.kickoffDays)+(l.base==="newbase"?num(S.curingDays):0))*D,num(S.installDays),reg,cfg);
+    if(m.resumeAt) t+=` · Monsoon (${reg.l}): coating can't start until ${fmtDate(m.resumeAt)}. Agree the date with the client now`;}
+  else if(st==="install"){const reg=regionFor(l.city,cfg), cs=at+(l.base==="newbase"?num(S.curingDays):0)*D, m=monsoonDelay(cs,num(S.installDays),reg,cfg);
+    t="Finish installation and hand over the court"+(m.resumeAt?` (monsoon pause until ${fmtDate(m.resumeAt)} included)`:""); due=cs+(num(S.installDays)+m.delay)*D;}
+  else if(st==="handover"){if(l.advocacyDone) return null; t="Get testimonial, photos and a Google review; ask for a referral; set the resurfacing reminder"; due=at+num(S.handoverDays)*D;}
+  else if(st==="notready"){t="Recall: check whether the project is back on"; due=l.recallAt||at+num(S.recallDays)*D; own="Inside sales";}
+  else if(st==="dealer_direct"){t="Check with the dealer that the lead was contacted"; due=c0+num(S.dealerDirectCheckDays)*D; own="Inside sales";}
+  else if(st==="nurture"){t="Email / WhatsApp nurture; rescore on new activity"; due=null; own="Marketing";}
+  else return null;
+  let dealerLate=false;
+  if(["sql","survey","proposal","followup","negotiation","hot"].includes(st)){
+    const last=Math.max(l.lastDealerAt||0,at); dealerLate=now-last>num(pb.dealerUpdateDays)*D;
+  }
+  return {t,due,own,late:due!=null&&now>due,dealerLate};
+}
+const dueTxt=ms=>{if(ms==null)return"";const d=ms-Date.now(),a=Math.abs(d);const u=a<H?Math.round(a/6e4)+" min":a<D?Math.round(a/H)+" hrs":Math.round(a/D)+" days";return d<0?`${u} overdue`:`due in ${u}`;};
+const inr=v=>{v=num(v);if(!v)return"";return v>=1e7?`₹${(v/1e7).toFixed(2)} Cr`:v>=1e5?`₹${(v/1e5).toFixed(1)} L`:`₹${v.toLocaleString("en-IN")}`;};
+function sqlCheck(l){
+  const c=l.chk||{};
+  const rows=[["Project confirmed: sport and number of courts / area",!!c.project],["Site and base status known",!!l.base],["Decision-maker identified (or the path to them)",!!c.dm],["Timeline within 6 months, or a tender date",!!c.timeline],["Budget indicated or approved",!!c.budget],["Dealer chosen for the territory",!!String(l.dealer||"").trim()]];
+  const ok=rows[0][1]&&rows[1][1]&&rows[2][1]&&(rows[3][1]||rows[4][1])&&rows[5][1];
+  return {rows,ok};
+}
+
+/* ================= DOM helpers ================= */
+const $=id=>document.getElementById(id);
+const el=(t,a={},kids=[])=>{const e=document.createElement(t);for(const k in a){const v=a[k];if(v==null||v===false)continue;if(k==="text")e.textContent=v;else if(k==="cls")e.className=v;else if(k==="html")e.innerHTML=v;else e.setAttribute(k,v===true?"":v);}(Array.isArray(kids)?kids:[kids]).forEach(k=>k!=null&&k!==false&&e.append(k));return e;};
+const fmtDate=ms=>ms?new Date(ms).toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"2-digit"}):"";
+const fmtDT=ms=>ms?new Date(ms).toLocaleString(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+const slug=l=>(l||"item").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,24)+"_"+Math.random().toString(36).slice(2,6);
+const verLabel=()=>META.version?`v${META.version}`:"defaults";
+
+/* ================= Tabs ================= */
+const TABS=["fw","sx","dm","sc","pl","tr","cd","st"];
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+function showTab(t){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===t)));
+  TABS.forEach(x=>$("v-"+x).hidden=x!==t);
+  try{localStorage.setItem("mqlTab",t);}catch(e){}
+}
+try{const t=localStorage.getItem("mqlTab"); if(TABS.includes(t)) showTab(t);}catch(e){}
+{const h=(location.hash||"").slice(1); if(TABS.includes(h)) showTab(h);}
+
+/* ================= Grid ================= */
+function gridInto(node,cfg,opts={}){
+  const R=cfg.rules; node.innerHTML=""; node.classList.toggle("dim",!!opts.on);
+  node.append(el("div",{cls:"h"}),el("div",{cls:"h",text:`Intent high ${R.intent1}+`}),el("div",{cls:"h",text:`Intent med ${R.intentMql}–${R.intent1-1}`}),el("div",{cls:"h",text:`Intent low <${R.intentMql}`}));
+  [["A",`Fit A ${R.fitA}+`],["B",`Fit B ${R.fitMql}–${R.fitA-1}`],["C",`Fit C <${R.fitMql}`]].forEach(([r,lab])=>{
+    node.append(el("div",{cls:"rh",text:lab}));
+    ["1","2","3"].forEach(ci=>{const k=r+ci;
+      node.append(el("div",{cls:`cell ${CELLCLS[k]}${opts.on===k?" on":""}`},[el("span",{cls:"id",text:k}),opts.counts?el("span",{cls:"ct",text:String(opts.counts[k]||0)}):null,el("span",{cls:"tx",text:cfg.cells[k]})]));});
+  });
+}
+
+/* ================= Framework ================= */
+function rulesRows(cfg){
+  const fit=[];
+  cfg.orgs.filter(o=>o.tier!=="P").forEach(o=>fit.push([(["1","2","3"].includes(o.tier)?tierName(o.tier)+" · ":"")+o.l,sgn(num(o.pts))]));
+  fit.push(["Decision-maker role",sgn(num(cfg.roles.dm))],["Influencer role",sgn(num(cfg.roles.inf))],
+    [`${cfg.size.bigCourts}+ courts or ${Number(cfg.size.bigArea).toLocaleString()} m²+`,sgn(num(cfg.size.bigPts))],["1–2 courts",sgn(num(cfg.size.smallPts))],
+    ["Inside service region",sgn(num(cfg.region.in))],["Outside service region",sgn(num(cfg.region.out))],
+    ["New build",sgn(num(cfg.project.new))],["Resurfacing",sgn(num(cfg.project.resurf))],["Indoor competition court",sgn(num(cfg.indoor))]);
+  cfg.fitExtras.forEach(x=>fit.push([x.l,sgn(num(x.pts))]));
+  const int=[];
+  cfg.pages.filter(p=>num(p.pts)).forEach(p=>int.push([`${p.tier} · ${p.l}`,sgn(num(p.pts))]));
+  cfg.beh.filter(b=>num(b.pts)).forEach(b=>int.push([b.l,sgn(num(b.pts))]));
+  cfg.timeline.filter(t=>num(t.pts)).forEach(t=>int.push([`Timeline ${t.l}`,sgn(num(t.pts))]));
+  const ch=[[`Search, buying-intent query`,"×"+cfg.rules.searchBuy],[`Search, informational query`,"×"+cfg.rules.searchInfo]];
+  const groups={}; cfg.channels.filter(c=>!c.search).forEach(c=>{const k=String(num(c.m));(groups[k]=groups[k]||[]).push(c.l.split(" (")[0]);});
+  Object.keys(groups).forEach(k=>ch.push([groups[k].join(", "),"×"+k]));
+  ch.sort((a,b)=>parseFloat(b[1].slice(1))-parseFloat(a[1].slice(1)));
+  const fastList=[...cfg.pages.filter(p=>p.fast).map(p=>p.l),...cfg.beh.filter(b=>b.fast).map(b=>b.l)];
+  if(cfg.rules.tier1QuoteFast) fastList.unshift("Tier 1 org submits a quote request");
+  const dq=cfg.orgs.filter(o=>o.tier==="X"), pt=cfg.orgs.filter(o=>o.tier==="P");
+  const ov=[["Fast-track to MQL",fastList.join(" · ")||"None"],
+    ["Disqualify",dq.map(o=>`${o.l} (${sgn(num(o.pts))} fit)`).join(" · ")||"None"],
+    ["Partner track",(pt.map(o=>o.l).join(" · ")||"None")+" → channel team, not the MQL queue"],
+    ["Decay",`Intent × ${cfg.rules.decayFactor} for every ${cfg.rules.decayDays} days since last activity`],
+    ["Caps",`Fit max ${cfg.rules.fitCap} · Intent max ${cfg.rules.intentCap}`]];
+  return {fit,int,ch,ov};
+}
+function fillTable(t,head,rows,numCol=true){
+  t.innerHTML=""; t.append(el("thead",{},el("tr",{},head.map(h=>el("th",{text:h})))));
+  t.append(el("tbody",{},rows.map(r=>el("tr",{},r.map((c,i)=>c instanceof Node?el("td",{},c):el("td",{cls:(numCol&&i===r.length-1)?"n":"",text:c}))))));
+}
+function renderFramework(){
+  const R=CFG.rules, rr=rulesRows(CFG);
+  const flow=$("fwFlow"); flow.innerHTML="";
+  [["1 · Source","Channel",["Search: buying or informational query","LinkedIn, Instagram, YouTube","Referral, dealer, marketplace"],"Sets the intent multiplier"],
+   ["2 · Journey","Landing & contact pages",["P1 quote, site visit, contact, WhatsApp","P2 specs, case studies, pricing","P3 blog and guides"]],
+   ["3 · Signals","Explicit + implicit",["Explicit: org, role, courts, region, project","Implicit: downloads, calculator, return visits"]],
+   ["4 · Score",`Fit 0–${R.fitCap} · Intent 0–${R.intentCap}`,["Fit = ICP + explicit criteria","Intent = (pages + behaviour) × channel × decay"]],
+   ["5 · Route","Grid cell → playbook",[`MQL if Fit ≥ ${R.fitMql} and Intent ≥ ${R.intentMql}`,"or a fast-track trigger","Then the Sales cycle tab takes over"]]]
+  .forEach(([k,b,li,hint])=>flow.append(el("div",{cls:"stage"},[el("span",{cls:"k",text:k}),el("b",{text:b}),el("ul",{},li.map(x=>el("li",{text:x}))),hint?el("span",{cls:"hint",text:hint}):null])));
+  $("fwLoop").innerHTML=""; $("fwLoop").append(el("b",{text:"Feedback loop: "}),document.createTextNode(`sales marks junk MQLs with a reason in the lead workspace. If fewer than ${R.acceptTarget}% of worked MQLs survive, raise the thresholds in Scoring settings before adding more criteria.`));
+  gridInto($("fwGrid"),CFG);
+  fillTable($("fitTbl"),["Criterion","Points"],rr.fit);
+  fillTable($("intTbl"),["Signal","Points"],rr.int);
+  fillTable($("chTbl"),["Channel and context","×"],rr.ch);
+  fillTable($("ovTbl"),["Rule","Detail"],rr.ov,false);
+}
+
+/* ================= Sales cycle tab ================= */
+const STAGE_DEF={
+  new:["Scored as MQL (or fast-tracked)","–","Lead lands in the sales-team queue with its grade and playbook","First call attempted","first response within the grade's SLA"],
+  attempt:["First call not answered","–","Second call, WhatsApp intro with catalogue and court photos, email","Answered → Connected. Two calls unanswered → AI bot","per playbook cadence"],
+  aibot:["Two calls unanswered","–","AI voice or WhatsApp bot asks three questions (sport, number of courts, timeline) and offers a callback slot","Responds → Connected. All touches used → Not ready, recycle","ends at the playbook's recycle day"],
+  connected:["A two-way conversation has happened","–","10-minute discovery call: project, sport and courts, site and base status, decision-maker, timeline, budget. Sends the court cost guide and picks the dealer for the territory","SQL gate met → SQL. Not now → Not ready with a recall date. Junk → reason","{discoveryDays} days"],
+  sql:["SQL gate met and dealer chosen","Accepts or declines the lead, then calls the client","Sends the dealer a lead brief; sets up a 3-way intro call for hot leads; logs the dealer's acceptance. Declined or SLA missed → reassign","Dealer accepts and books the site visit","dealer accepts within the playbook's hours"],
+  survey:["Dealer has accepted","Site visit: measures, checks base type, slope, cracks and drainage, takes photos; recommends a hard-court or cushioned system and colours","Confirms with the client that the visit happened; sends samples or the colour chart","Quote sent","site visit + quote within playbook days"],
+  proposal:["Site surveyed (or tender documents ready)","Sends the quote with system spec, colour layout and warranty. Tender: prepares the bid","Checks the quote matches the spec and price list; confirms the client has it","Client follow-up (standard) or bid submitted (tender)","client call within playbook days"],
+  followup:["Quote received by the client","Updates the sales team at the agreed frequency","Calls the client directly for feedback and objections: price, base readiness, competitor, approvals, timeline. Passes answers to the dealer","Objections answered → Negotiation","dealer update at playbook frequency"],
+  negotiation:["Client engaged on price and terms","Negotiates price, payment terms and start date","Approves price support for the dealer within policy; keeps the client warm","Verbal yes → Hot. Dropped → Lost","{negotiationDays} days"],
+  bid:["Tender track only","Submits the tender: pre-bid queries, EMD, bid documents","Supplies certifications, test reports and past work orders; checks compliance","Technically qualified → Evaluation","{tenderDays} days"],
+  eval:["Bid submitted","Tracks technical and financial (L1) evaluation","Answers technical clarifications","L1 / award → Hot (LOI). Otherwise Lost","{tenderDays} days"],
+  hot:["Closing expected within a week","Collects PO and advance; fixes the site-ready date","Confirms the order with the client; alerts factory planning","PO + advance → Won. Slips → back to Negotiation or Lost","{hotDays} days"],
+  won:["PO and advance received","Places the material order; schedules the base check","Tracks dispatch; confirms the install date with the client","Installation starts","{kickoffDays} days"],
+  booked:["Order and advance taken during the rains, install slot agreed","Holds the advance; confirms crew and material before the slot","Keep-warm call every {bookedTouchDays} days; confirms the slot {slotConfirmDays} days before; sends the site-prep checklist","Slot date reached → installation. Cancelled → Closed lost","until the slot date"],
+  install:["Installation scheduled","Base check (new concrete cures about {curingDays} days first), surface application, line marking, quality checks","Quality-check call and photos; resolves issues with the dealer","Court handed over","{installDays} days (+{curingDays} for a new base)"],
+  handover:["Court handed over","Hands over with the maintenance guide","Testimonial, photos, Google review, referral ask, case study; resurfacing reminder in 4–5 years","Goal reached: the referral comes back in as a new lead","{handoverDays} days"]
+};
+function slaFill(s){return s.replace(/\{(\w+)\}/g,(m,k)=>CFG.sla[k]);}
+function renderSalesCycle(){
+  const ph=$("sxPhases"); ph.innerHTML="";
+  const PH=[["contact","1 · Contact","MQL → reached"],["qualify","2 · Qualify","Reached → SQL"],["opp","3 · Opportunity","SQL → quote"],["close","4 · Close","Quote → order"],["deliver","5 · Deliver & advocate","Order → referral"]];
+  PH.forEach(([k,n,b])=>{
+    const stg=STAGES.filter(s=>s.ph===k);
+    ph.append(el("div",{cls:"ph"},[el("span",{cls:"k",text:n}),el("b",{text:b}),...stg.map(s=>el("div",{cls:"stg"+(s.goal?" goal":"")},[el("span",{},[document.createTextNode(s.l),s.src?el("span",{cls:"tag "+s.src,text:s.src==="d"?"draft":"added"}):null,s.track==="tender"?el("span",{cls:"tag n",text:"tender"}):null]),el("span",{cls:"o",text:s.own})]))]));
+  });
+  const ex=$("sxExits"); ex.innerHTML="";
+  [["No answer loop","Call 1 → Call 2 → AI bot → recycle to Not ready after the playbook's last touch. Nobody stays in “No answer” forever."],
+   ["Not qualified (junk)","Ends the lead. A reason is required; reasons feed back into the MQL scoring."],
+   ["Not ready · recall","Real project, wrong time. Gets a recall date and goes back to marketing nurture. Rescored on new activity."],
+   ["Closed lost","Reason required: competitor, plan dropped, price, dealer dropped, base not ready, budget, tender lost. Reviewed monthly; recheck in 6 months."]]
+  .forEach(([b,t])=>ex.append(el("div",{cls:"exit"},[el("b",{text:b}),document.createTextNode(t)])));
+  $("sxGate").innerHTML="";
+  $("sxGate").append(el("h3",{text:"SQL acceptance gate: Connected → SQL"}),el("p",{text:"Inside sales may pass a lead to a dealer only when all of these are true:",style:"margin:0"}),
+    el("ul",{},["Project confirmed: sport and number of courts or area","Site and base status known: existing concrete or asphalt, new base needed, or resurfacing","Decision-maker identified, or the path to them","Timeline within 6 months, or a tender date. If not, budget indicated or approved","Dealer chosen for the territory"].map(t=>el("li",{text:t}))),
+    el("p",{text:"Interim dealer rule (two dealers per area): Suggest dealer gives the SQL to the dealer with fewer SQLs in the last 30 days, alternating on a tie. A decline passes it to the other dealer. Replace this with performance-based selection once each dealer has about 30 SQLs.",style:"margin:8px 0 0"}),
+    el("p",{cls:"hint",text:"Dealers close every sale. Throughout Opportunity and Close, the sales team follows up with the dealer for updates at the playbook's frequency. A dealer who misses it is flagged on the pipeline card, escalated to the sales team lead, and reassigned if it continues. Dealer performance is tracked on the Pipeline tab.",style:"margin:8px 0 0"}));
+  const P=CFG.playbooks;
+  const touches=pb=>el("ul",{cls:"touches"},pb.touches.map(t=>el("li",{},[el("span",{text:"Day "+t.day}),document.createTextNode(t.a)])));
+  const rows=Object.keys(P).map(k=>{const p=P[k];return [p.label+(k==="hot"?" (sales team lead involved)":""),`${p.firstHrs} hrs`,touches(p),`Day ${p.recycleDay}`,`${p.dealerHrs} hrs`,`${p.surveyDays} + ${p.quoteDays} days`,`${p.followDays} days`,`every ${p.dealerUpdateDays} days`];});
+  rows.push(["C1 · dealer / self-serve","Dealer within 24 hrs","Dealer calls; inside sales checks with the dealer on day "+CFG.sla.dealerDirectCheckDays,"–","–","–","–","–"]);
+  rows.push(["A3, B3, C2 · nurture","No calls","Email and WhatsApp nurture; rescored when they act again","–","–","–","–","–"]);
+  rows.push(["C3","No action","–","–","–","–","–","–"]);
+  fillTable($("sxPb"),["Grade / playbook","First response","Contact cadence","Recycle","Dealer accepts","Site visit + quote","Client follow-up","Dealer update"],rows,false);
+  const drows=SEQ.std.concat(["bid","eval","booked"]).filter((k,i,a)=>a.indexOf(k)===i).sort((a,b)=>RANK[a]-RANK[b]||(["bid","eval","booked"].includes(a)?1:-1)).map(k=>{const d=STAGE_DEF[k],s=ST[k];
+    return [el("span",{},[el("b",{text:s.l}),s.src?el("span",{cls:"tag "+s.src,text:s.src==="d"?"draft":"added"}):null,s.track==="tender"?el("span",{cls:"tag n",text:"tender"}):null]),d[0],d[1],d[2],d[3],slaFill(d[4])];});
+  fillTable($("sxDef"),["Stage","Entry","Dealer does","Sales team hand-holds","Exit","SLA"],drows,false);
+  renderTimeline();
+}
+
+/* ================= Monsoon ================= */
+const MMDD=/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+function regionFor(city,cfg=CFG){
+  const rs=(cfg.monsoon.regions||[]).filter(r=>MMDD.test(r.from)&&MMDD.test(r.to)); const c=String(city||"").toLowerCase().trim();
+  if(c){const hit=rs.find(r=>String(r.match||"").toLowerCase().split(",").map(x=>x.trim()).some(t=>t&&t!=="*"&&(c.includes(t)||t.includes(c)))); if(hit) return hit;}
+  return rs.find(r=>String(r.match||"").trim()==="*")||null;
+}
+function windowsAround(ms,reg){
+  const y=new Date(ms).getFullYear(), out=[];
+  for(const yy of [y-1,y,y+1,y+2]){
+    const [fm,fd]=reg.from.split("-").map(Number),[tm,td]=reg.to.split("-").map(Number);
+    const s=new Date(yy,fm-1,fd).getTime(); let e=new Date(yy,tm-1,td,23,59).getTime(); if(e<s) e=new Date(yy+1,tm-1,td,23,59).getTime();
+    out.push([s,e]);
+  }
+  return out;
+}
+function monsoonDelay(start,durDays,reg,cfg=CFG){
+  if(!reg||!cfg.monsoon.on) return {delay:0,resumeAt:null};
+  let S=start; const W=windowsAround(start,reg);
+  for(let i=0;i<4;i++){const hit=W.find(([ws,we])=>S<we&&S+durDays*D>ws); if(!hit)break; S=hit[1]+60e3;}
+  return {delay:(S-start)/D,resumeAt:S>start?S:null};
+}
+const mmddTxt=s=>{const [m,d]=s.split("-").map(Number);return new Date(2001,m-1,d).toLocaleDateString(undefined,{day:"numeric",month:"short"});};
+
+/* ================= Expected timeline & calibration ================= */
+function expectedPlan(pk,track,base,opt={},cfg=CFG){
+  const p=cfg.playbooks[pk]||cfg.playbooks.mql, S=cfg.sla;
+  const contact=Math.max(num(p.firstHrs)/24,num((p.touches[Math.min(2,p.touches.length-1)]||{day:1}).day));
+  const segs=[{k:"contact",l:"Contact → reached",d:contact,o:"team"},{k:"connected",l:"Discovery → SQL",d:num(S.discoveryDays),o:"team"},
+    {k:"sql",l:"Dealer accepts",d:num(p.dealerHrs)/24,o:"dealer"},{k:"survey",l:"Site visit + quote",d:num(p.surveyDays)+num(p.quoteDays),o:"dealer"}];
+  if(track==="tender") segs.push({k:"proposal",l:"Prepare bid",d:num(S.tenderDays),o:"dealer"},{k:"bid",l:"Bid opening",d:num(S.tenderDays),o:"dealer"},{k:"eval",l:"Technical / L1",d:num(S.tenderDays),o:"dealer"});
+  else segs.push({k:"proposal",l:"Client follow-up",d:num(p.followDays),o:"team"},{k:"followup",l:"Objections",d:num(p.dealerUpdateDays),o:"team"},{k:"negotiation",l:"Negotiation",d:num(S.negotiationDays),o:"dealer"});
+  segs.push({k:"hot",l:"PO + advance",d:num(S.hotDays),o:"dealer"},{k:"won",l:"Kickoff",d:num(S.kickoffDays),o:"deliver"});
+  if(base==="newbase") segs.push({k:"curing",l:"New base curing",d:num(S.curingDays),o:"deliver"});
+  segs.push({k:"install",l:"Installation",d:num(S.installDays),o:"deliver"},{k:"handover",l:"Advocacy",d:num(S.handoverDays),o:"team"});
+  if(opt.startMs&&opt.region!=="none"){
+    const reg=opt.region?(cfg.monsoon.regions||[]).find(r=>r.v===opt.region):regionFor(opt.city,cfg);
+    if(reg&&MMDD.test(reg.from)&&MMDD.test(reg.to)){
+      const st=opt.startMs+sumUntil(segs,"install")*D, m=monsoonDelay(st,num(S.installDays),reg,cfg);
+      if(m.delay>0.5){const i=segs.findIndex(x=>x.k==="install"); segs.splice(i,0,{k:"monsoon",l:"Monsoon wait",d:m.delay,o:"monsoon",resumeAt:m.resumeAt,reg:reg.l});}
+    }
+  }
+  return segs;
+}
+const fmtD=d=>d==null?"–":d<1?Math.round(d*24)+" hrs":(d<10?(Math.round(d*10)/10):Math.round(d))+" d";
+const sumUntil=(segs,stop)=>{let s=0;for(const x of segs){if(x.k===stop)break;s+=x.d;}return s;};
+function renderTimeline(){
+  const base=$("sxBase").value, rows=[["hot","std"],["mql","std"],["qualify","std"],["mql","tender"]];
+  const now=new Date(), mon=num($("sxMonth").value), yr=mon<now.getMonth()?now.getFullYear()+1:now.getFullYear();
+  const startMs=new Date(yr,mon,15).getTime(), region=$("sxRegion").value||"none";
+  const plans=rows.map(([pk,tr])=>({pk,tr,segs:expectedPlan(pk,tr,base,{startMs,region})}));
+  const max=Math.max(...plans.map(p=>p.segs.reduce((s,x)=>s+x.d,0)));
+  const g=$("sxGantt"); g.innerHTML="";
+  plans.forEach(({pk,tr,segs})=>{
+    const tot=segs.reduce((s,x)=>s+x.d,0), won=sumUntil(segs,"won");
+    const bar=el("div",{cls:"gbar",style:`width:${tot/max*100}%`},segs.map(x=>el("i",{cls:x.o,style:`flex:${x.d} 0 0`,title:`${x.l}: ${fmtD(x.d)}`,text:x.d/max>0.045?x.l.split(" ")[0]:""})));
+    const mw=segs.find(x=>x.k==="monsoon");
+    g.append(el("div",{cls:"gr"},[el("span",{},[el("b",{text:tr==="tender"?"Tender track":CFG.playbooks[pk].label}),el("div",{cls:"hint",text:(tr==="tender"?"Municipal / RFQ, MQL pace":`first call ≤ ${CFG.playbooks[pk].firstHrs} hrs`)+(mw?` · waits ${Math.round(mw.d)} d for monsoon`:"")})]),el("div",{cls:"gtrack"},bar),el("span",{cls:"mono",text:`won ~day ${Math.round(won)} · done ~day ${Math.round(tot)}`})]));
+  });
+  const ticks=el("div",{cls:"gr"},[el("span"),el("div",{cls:"gticks"},[0,0.25,0.5,0.75,1].map(f=>el("span",{style:`left:${f*100}%`,text:"day "+Math.round(f*max)}))),el("span")]);
+  g.append(ticks);
+  g.append(el("div",{cls:"btns"},[["team","Sales team"],["dealer","Dealer"],["deliver","Delivery (dealer)"],["monsoon","Monsoon wait"]].map(([c,t])=>el("span",{cls:"lg"},[el("i",{cls:c}),document.createTextNode(t)]))));
+  const mrow=({pk,tr,segs})=>{const at=k=>sumUntil(segs,k);
+    return [tr==="tender"?"Tender track":CFG.playbooks[pk].label,`≤ ${CFG.playbooks[pk].firstHrs} hrs`,"day "+Math.round(at("sql")),"day "+Math.round(at("survey")+num(CFG.playbooks[pk].surveyDays)),"day "+Math.round(at(tr==="tender"?"proposal":"proposal")),"day "+Math.round(at("won")),"day "+Math.round(at("handover"))];};
+  fillTable($("sxMile"),["Grade","First call","SQL by","Site visit by","Quote by","Won by","Court handed over by"],plans.map(mrow),false);
+  renderMonsoonCal();
+  renderCalibration();
+}
+$("sxBase").addEventListener("change",renderTimeline);
+["sxMonth","sxRegion"].forEach(id=>$(id).addEventListener("change",renderTimeline));
+function renderTimelineControls(){
+  const m=$("sxMonth"); if(!m.options.length){for(let i=0;i<12;i++) m.append(el("option",{value:String(i),text:new Date(2001,i,1).toLocaleDateString(undefined,{month:"long"})})); m.value=String(new Date().getMonth());}
+  const r=$("sxRegion"), cur=r.value; r.innerHTML=""; r.append(el("option",{value:"none",text:"No monsoon adjustment"}));
+  (CFG.monsoon.regions||[]).filter(x=>MMDD.test(x.from)&&MMDD.test(x.to)).forEach(x=>r.append(el("option",{value:x.v,text:`${x.l} · ${mmddTxt(x.from)}–${mmddTxt(x.to)}`})));
+  r.value=[...r.options].some(o=>o.value===cur)?cur:(CFG.monsoon.on&&r.options[1]?r.options[1].value:"none");
+}
+function renderMonsoonCal(){
+  const base=$("sxBase").value, rows=[];
+  (CFG.monsoon.regions||[]).filter(x=>MMDD.test(x.from)&&MMDD.test(x.to)).forEach(reg=>{
+    const [fm,fd]=reg.from.split("-").map(Number); const now=new Date(); let ws=new Date(now.getFullYear(),fm-1,fd);
+    const [tm,td]=reg.to.split("-").map(Number); let we=new Date(ws.getFullYear(),tm-1,td); if(we<ws) we=new Date(ws.getFullYear()+1,tm-1,td);
+    const inNow=ws<=now&&now<=we, resumeNow=we;
+    if(ws<now){ws=new Date(ws.getFullYear()+1,fm-1,fd);we=new Date(ws.getFullYear(),tm-1,td); if(we<ws) we=new Date(ws.getFullYear()+1,tm-1,td);}
+    const cut=pk=>{const segs=expectedPlan(pk,"std",base); const off=sumUntil(segs,"install")+num(CFG.sla.installDays), c=ws.getTime()-off*D; return c<Date.now()?"Passed: installs after the rains":fmtDate(c);};
+    rows.push([reg.l+(inNow?" · in monsoon now":""),`${mmddTxt(reg.from)} – ${mmddTxt(reg.to)}`,cut("hot"),cut("mql"),cut("qualify"),inNow?`${fmtDate(resumeNow.getTime()+D)} (this season)`:fmtDate(we.getTime()+D)]);
+  });
+  fillTable($("sxMon"),["Region","No coating","Hot MQL must arrive by","A2 / B1 MQL by","B2 MQL by","Installs resume"],rows,false);
+}
+function renderCalibration(){
+  const firstAt=(l,k)=>((l.history||[]).find(h=>h.stage===k)||{}).at;
+  const PH=[
+    ["Contact: MQL → reached",l=>l.createdAt,l=>firstAt(l,"connected"),["contact"],"First response hrs and contact cadence (playbooks)"],
+    ["Discovery → SQL",l=>firstAt(l,"connected"),l=>l.sqlAt||firstAt(l,"sql"),["connected"],"Stage SLAs · Discovery → SQL decision"],
+    ["Dealer acceptance",l=>l.sqlAt||firstAt(l,"sql"),l=>l.dealerAcceptedAt,["sql"],"Playbooks · Dealer accepts within (hrs)"],
+    ["Site visit + quote",l=>l.dealerAcceptedAt||l.sqlAt||firstAt(l,"sql"),l=>firstAt(l,"proposal"),["survey"],"Playbooks · Site visit and quote days"],
+    ["Quote → hot",l=>firstAt(l,"proposal"),l=>firstAt(l,"hot"),["proposal","followup","negotiation","bid","eval"],"Playbooks · follow-up; Stage SLAs · Negotiation / Tender"],
+    ["Hot → won",l=>firstAt(l,"hot"),l=>firstAt(l,"won"),["hot"],"Stage SLAs · Hot → PO + advance"],
+    ["Won → handed over",l=>firstAt(l,"won"),l=>firstAt(l,"handover"),["won","curing","install"],"Stage SLAs · Kickoff, curing, installation; Monsoon windows"],
+    ["Whole cycle: MQL → won",l=>l.createdAt,l=>firstAt(l,"won"),null,"All of the above"]];
+  const rows=PH.map(([name,f0,f1,keys,setting])=>{
+    const act=[],exp=[];
+    leads.filter(l=>l.mql).forEach(l=>{const a=f0(l),b=f1(l); if(!a||!b||b<a) return;
+      const segs=expectedPlan(pbKey(l)||"mql",l.track||"std",l.base,{startMs:l.createdAt,city:l.city});
+      const e=keys?segs.filter(s=>keys.includes(s.k)||(s.k==="monsoon"&&keys.includes("install"))).reduce((s,x)=>s+x.d,0):sumUntil(segs,"won");
+      act.push((b-a)/D); exp.push(e);});
+    const segsDef=expectedPlan("mql","std",$("sxBase").value);
+    const eDef=keys?segsDef.filter(s=>keys.includes(s.k)).reduce((s,x)=>s+x.d,0):sumUntil(segsDef,"won");
+    const n=act.length, ma=median(act), me=n?median(exp):eDef;
+    let status; if(n<5) status=el("span",{cls:"pill p-no",text:`Collecting data (${n}/5)`});
+    else {const r=ma/Math.max(me,0.01); status=r>1.25?el("span",{cls:"pill p-dq",text:`Slower ×${r.toFixed(1)}`}):r<0.75?el("span",{cls:"pill p-alt",text:`Faster ×${r.toFixed(1)}`}):el("span",{cls:"pill p-mql",text:"On track"});}
+    return [name,fmtD(me),n?fmtD(ma):"–",String(n),status,n>=10&&Math.abs(ma/Math.max(me,0.01)-1)>0.25?`Change to ~${fmtD(ma)} in ${setting}`:setting];
+  });
+  fillTable($("sxCal"),["Phase","Expected","Actual (median)","Leads","Status","Setting to adjust"],rows,false);
+}
+
+/* ================= Score form ================= */
+const FIELDS=["name","company","email","phone","city","region","org","role","proj","courts","area","setting","timeline","channel","qintent","campaign","landing","page","days","assigned","notes"];
+function readForm(){
+  const L={}; FIELDS.forEach(f=>L[f]=$(f).value.trim());
+  L.sports=[...$("sports").querySelectorAll("input:checked")].map(i=>i.value);
+  L.beh=[...$("beh").querySelectorAll("input:checked")].map(i=>i.value);
+  L.fx=[...$("fx").querySelectorAll("input:checked")].map(i=>i.value);
+  return L;
+}
+function fillForm(L){
+  FIELDS.forEach(f=>{$(f).value=L[f]??"";});
+  if(!L.channel) $("channel").value="unknown"; if(!L.setting) $("setting").value="out"; if(!L.qintent) $("qintent").value="buy"; if(!L.days) $("days").value="0";
+  [["sports",L.sports],["beh",L.beh],["fx",L.fx]].forEach(([id,arr])=>$(id).querySelectorAll("input").forEach(i=>i.checked=(arr||[]).includes(i.value)));
+  updateScore();
+}
+function renderFormOptions(){
+  const keep=readForm();
+  const org=$("org"); org.innerHTML=""; org.append(el("option",{value:"",text:"Not known"}));
+  TIERS.forEach(([t,n])=>{const list=CFG.orgs.filter(o=>o.tier===t); if(!list.length)return; const og=el("optgroup",{label:n}); list.forEach(o=>og.append(el("option",{value:o.v,text:o.l}))); org.append(og);});
+  const tl=$("timeline"); tl.innerHTML=""; tl.append(el("option",{value:"",text:"Not known"})); CFG.timeline.forEach(t=>tl.append(el("option",{value:t.v,text:t.l})));
+  const ch=$("channel"); ch.innerHTML=""; CFG.channels.forEach(c=>ch.append(el("option",{value:c.v,text:c.l})));
+  const pg=$("page"); pg.innerHTML=""; pg.append(el("option",{value:"",text:"Not known"})); CFG.pages.forEach(p=>pg.append(el("option",{value:p.v,text:`${p.tier} · ${p.l}`})));
+  const sp=$("sports"); if(!sp.children.length) SPORTS.forEach((s,i)=>{const id="sp"+i; sp.append(el("label",{cls:"chk",for:id},[el("input",{type:"checkbox",id,value:s}),document.createTextNode(s)]));});
+  const bh=$("beh"); bh.innerHTML=""; CFG.beh.forEach(b=>{const id="bh_"+b.v; bh.append(el("label",{cls:"chk",for:id},[el("input",{type:"checkbox",id,value:b.v}),document.createTextNode(b.l),el("span",{cls:"pt",text:b.fast?(num(b.pts)?sgn(num(b.pts))+" · fast":"fast-track"):sgn(num(b.pts))})]));});
+  const fx=$("fx"); fx.innerHTML=""; CFG.fitExtras.forEach(x=>{const id="fx_"+x.v; fx.append(el("label",{cls:"chk",for:id},[el("input",{type:"checkbox",id,value:x.v}),document.createTextNode(x.l),el("span",{cls:"pt",text:sgn(num(x.pts))})]));});
+  $("fxWrap").hidden=!CFG.fitExtras.length;
+  fillForm(keep);
+}
+function updateScore(){
+  const L=readForm(), s=score(L,CFG), R=CFG.rules;
+  $("qWrap").hidden=!(findV(CFG.channels,L.channel)||{}).search;
+  $("indoorWarn").hidden=L.setting!=="in";
+  $("sFit").firstChild.nodeValue=s.fit; $("sInt").firstChild.nodeValue=s.intent;
+  $("sFitCap").textContent="/"+R.fitCap; $("sIntCap").textContent="/"+R.intentCap;
+  $("bFit").style.width=(s.fit/R.fitCap*100)+"%"; $("bInt").style.width=(s.intent/R.intentCap*100)+"%";
+  const empty=!L.org&&!L.page&&!L.beh.length&&!L.role;
+  $("verdict").className="verdict "+(empty?"no":s.kind);
+  $("vBig").textContent=empty?"Not enough data":s.label;
+  const pk=pbKey({mql:s.mql,fastTrack:s.fast,cell:s.cell});
+  $("vRoute").textContent=empty?"Pick an organisation type and the deepest page reached to start.":`Cell ${s.cell} · ${s.route}${pk?` · Playbook: ${CFG.playbooks[pk].label}`:""}`;
+  const mini=$("mini"); mini.innerHTML="";
+  ["A","B","C"].forEach(r=>["1","2","3"].forEach(c=>mini.append(el("div",{cls:(!empty&&s.cell===r+c)?"on":"",text:r+c}))));
+  const w=$("why"); w.innerHTML="";
+  const lines=s.items.map(i=>`${i.label}: ${sgn(i.pts)} ${i.side==="fit"?"fit":"intent"}`);
+  if(s.mult!==1) lines.push(`Channel multiplier ×${s.mult}`);
+  if(s.decay<1) lines.push(`Inactivity decay ×${s.decay.toFixed(2)}`);
+  lines.push(...s.notes);
+  (lines.length?lines:["No signals yet"]).forEach(t=>w.append(el("li",{text:t})));
+  return {L,s};
+}
+$("lf").addEventListener("input",updateScore); $("lf").addEventListener("change",updateScore);
+$("clrBtn").addEventListener("click",()=>{fillForm({}); $("saveMsg").textContent="";});
+
+/* ================= Demo ================= */
+const SCEN=[
+  {id:"ex1",title:"Example · Developer, pickleball, Google Ads",L:{name:"Example: Priya Menon",company:"Example: Greenfield Residency",email:"priya@example.com",city:"Kochi",region:"in",org:"developer",role:"dm",proj:"new",courts:"2",setting:"out",timeline:"t3",sports:["Pickleball","Tennis"],channel:"paid_search",qintent:"buy",campaign:"pickleball court cost kochi",landing:"/pickleball-court-flooring",page:"eval",beh:["spec","calc"],days:"0"}},
+  {id:"ex2",title:"Example · Homeowner from Instagram",L:{name:"Example: Rahul S.",company:"",email:"rahul.example@gmail.com",city:"Pune",region:"in",org:"homeowner",role:"dm",proj:"new",courts:"1",setting:"out",timeline:"t0",sports:["Pickleball"],channel:"instagram",page:"whatsapp",beh:["video"],days:"0"}},
+  {id:"ex3",title:"Example · Municipal tender with RFQ",L:{name:"Example: Sports Officer",company:"Example: City Sports Authority",email:"officer@example.gov.in",city:"Lucknow",region:"in",org:"municipal",role:"inf",proj:"new",courts:"6",setting:"out",timeline:"t6",sports:["Tennis","Basketball","Volleyball"],channel:"direct",page:"contact",beh:["rfq","spec"],days:"0"}},
+  {id:"ex4",title:"Example · Architect researching, gone quiet",L:{name:"Example: Anita Rao",company:"Example: Rao Landscape Studio",email:"anita@example.com",city:"Bengaluru",region:"in",org:"architect",role:"inf",proj:"new",courts:"3",setting:"out",timeline:"t12",sports:["Tennis"],channel:"organic",qintent:"info",page:"edu",beh:["spec","cases"],days:"45"}},
+  {id:"ex5",title:"Example · Indoor badminton academy, out of region",L:{name:"Example: Coach Vikram",company:"Example: Smash Badminton Academy",email:"vikram@example.com",city:"Guwahati",region:"out",org:"club",role:"dm",proj:"new",courts:"6",setting:"in",timeline:"t0",sports:["Badminton"],channel:"marketplace",page:"quote",beh:[],days:"0"}}
+];
+$("exBtn").addEventListener("click",()=>{fillForm({...SCEN[0].L,notes:"Example lead: replace with a real enquiry."});});
+const DSTEPS=["Enquiry","Channel","Pages","Explicit (Fit)","Behaviour","Score","Route","Sales playbook"];
+let dmStep=0;
+function demoCfg(){return ($("dmDraft").checked&&isDirty())?normalize(draft):CFG;}
+function demoLead(){
+  const v=$("dmPick").value;
+  if(v.startsWith("lead:")){const l=leads.find(x=>x.id===v.slice(5)); return l||SCEN[0].L;}
+  return (SCEN.find(s=>s.id===v)||SCEN[0]).L;
+}
+function renderDemoPicker(){
+  const p=$("dmPick"), cur=p.value; p.innerHTML="";
+  const g1=el("optgroup",{label:"Example scenarios"}); SCEN.forEach(s=>g1.append(el("option",{value:s.id,text:s.title}))); p.append(g1);
+  if(leads.length){const g2=el("optgroup",{label:"Saved leads"}); leads.slice(0,60).forEach(l=>g2.append(el("option",{value:"lead:"+l.id,text:`${l.name||"Unnamed"}${l.company?" · "+l.company:""}`}))); p.append(g2);}
+  if([...p.options].some(o=>o.value===cur)) p.value=cur;
+}
+function renderDemo(){
+  const cfg=demoCfg(), L=demoLead(), s=score(L,cfg), R=cfg.rules;
+  $("dmDraftWrap").hidden=!isDirty();
+  const steps=$("dmSteps"); steps.innerHTML="";
+  DSTEPS.forEach((n,i)=>{const b=el("button",{type:"button",cls:i===dmStep?"cur":i<dmStep?"done":"",text:`${i+1}. ${n}`}); b.addEventListener("click",()=>{dmStep=i;renderDemo();}); steps.append(b);});
+  const stg=$("dmStage"); stg.innerHTML="";
+  const o=findV(cfg.orgs,L.org), ch=findV(cfg.channels,L.channel), pg=findV(cfg.pages,L.page);
+  const itemsOf=stage=>s.items.filter(i=>i.stage===stage);
+  const itemList=arr=>el("div",{cls:"items"},arr.length?arr.map(i=>el("div",{cls:`item ${i.pts>=0?"pos":"neg"} side-${i.side}`},[el("span",{text:i.label}),el("b",{text:`${sgn(i.pts)} ${i.side==="fit"?"fit":"intent"}`})])):[el("p",{text:"Nothing scored at this step."})]);
+  const head=(k,h,p)=>[el("span",{cls:"k",text:k}),el("h4",{text:h}),p?el("p",{text:p}):null];
+  const sizeTxt=L.courts?`${L.courts==="3"?"3–5":L.courts==="6"?"6+":L.courts} court(s)`:"Courts not known";
+  const tl=findV(cfg.timeline,L.timeline);
+  if(dmStep===0){
+    stg.append(...head("Step 1 · The enquiry",`${L.name||"A new lead"}${L.company?" · "+L.company:""}`,"Here's what we know about the lead before scoring anything."),
+      el("dl",{cls:"facts"},[["Organisation",o?o.l:"Not known"],["Role",{dm:"Decision-maker",inf:"Influencer",oth:"Other"}[L.role]||"Not known"],["Project",[L.proj==="new"?"New build":L.proj==="resurf"?"Resurfacing":"",sizeTxt,L.setting==="in"?"Indoor":"Outdoor"].filter(Boolean).join(" · ")],["Sports",(L.sports||[]).join(", ")||"–"],["Location",`${L.city||"–"}${L.region==="in"?" (in region)":L.region==="out"?" (out of region)":""}`],["Timeline",tl?tl.l:"Not known"]].flatMap(([a,b])=>[el("dt",{text:a}),el("dd",{text:b})])));
+  } else if(dmStep===1){
+    const isS=ch&&ch.search;
+    stg.append(...head("Step 2 · Source channel",ch?ch.l:"Unknown channel",isS?`Search is judged by the query, not the platform. This was a ${L.qintent==="info"?"research (informational)":"buying-intent"} query${L.campaign?`: “${L.campaign}”`:""}.`:"The channel doesn't add points. It sets a multiplier that applies to the Intent score at the end."),
+      el("div",{cls:"items"},[el("div",{cls:"item mul side-int"},[el("span",{text:"Intent multiplier to apply later"}),el("b",{text:"×"+s.mult})])]));
+  } else if(dmStep===2){
+    stg.append(...head("Step 3 · Landing & contact pages",pg?`Deepest page: ${pg.tier}`:"Page not known",pg?pg.l:"We only score the deepest page reached, so a visitor can't collect points just by browsing a lot."),itemList(itemsOf("page")));
+    if(pg&&pg.fast) stg.append(el("p",{cls:"warn",text:"This page is a fast-track trigger: the lead becomes an MQL whatever the score."}));
+  } else if(dmStep===3){
+    stg.append(...head("Step 4 · ICP & explicit criteria",`Fit score: ${s.fit}`,"What the lead told us: who they are, how big the project is, where it is."),itemList(itemsOf("explicit")));
+    if(s.fitRaw!==s.fit) stg.append(el("p",{text:`Raw total ${s.fitRaw}, held between 0 and the ${R.fitCap} cap.`}));
+  } else if(dmStep===4){
+    stg.append(...head("Step 5 · Implicit behaviour","What they did","Actions on the site and in email add to Intent, along with the timeline."),itemList(itemsOf("behaviour")));
+    if(s.fastReasons.length) stg.append(el("p",{cls:"warn",text:"Fast-track trigger: "+s.fastReasons.join(", ")}));
+  } else if(dmStep===5){
+    stg.append(...head("Step 6 · Fit × Intent",`Fit ${s.fit} · Intent ${s.intent}`,"Channel and inactivity adjust the raw intent points, then both scores are capped."),
+      el("div",{cls:"math",html:`Fit &nbsp;&nbsp;&nbsp;= ${s.fitRaw} → <b>${s.fit}</b> (0–${R.fitCap})<br>Intent = ${s.rawI} raw × ${s.mult} channel × ${s.decay.toFixed(2)} decay = ${s.intentUncapped} → <b>${s.intent}</b> (0–${R.intentCap})`}));
+    if(num(L.days)>=num(R.decayDays)) stg.append(el("p",{text:`Last activity ${L.days} days ago, so intent decays ×${R.decayFactor} per ${R.decayDays} days.`}));
+  } else if(dmStep===6){
+    stg.append(...head("Step 7 · Route",s.mql?"This is an MQL":"Not an MQL",`MQL rule: Fit ≥ ${R.fitMql} and Intent ≥ ${R.intentMql}, or a fast-track trigger.`),el("div",{cls:"verdict "+s.kind},[el("span",{cls:"big",text:`${s.label} · ${s.cell}`}),el("span",{text:s.route})]));
+    s.notes.forEach(n=>stg.append(el("p",{cls:"warn",text:n})));
+  } else {
+    const pk=pbKey({mql:s.mql,fastTrack:s.fast,cell:s.cell});
+    if(pk){const pb=cfg.playbooks[pk];
+      stg.append(...head("Step 8 · What sales does next",pb.label,`First response within ${pb.firstHrs} hrs. If we can't reach them, they move to Not ready on day ${pb.recycleDay} and go back to nurture.`),
+        el("div",{cls:"items"},pb.touches.map(t=>el("div",{cls:"item side-int"},[el("span",{text:t.a}),el("b",{text:"Day "+t.day})]))),
+        el("p",{text:`Once reached: discovery call → SQL gate → dealer accepts within ${pb.dealerHrs} hrs → site visit and quote within ${num(pb.surveyDays)+num(pb.quoteDays)} days → client follow-up → close → installation → referral.`}));
+    } else {
+      stg.append(...head("Step 8 · What happens next",ST[s.stage].l,s.stage==="dealer_direct"?`The dealer gets the lead within 24 hrs; inside sales checks with the dealer on day ${cfg.sla.dealerDirectCheckDays}.`:s.stage==="nurture"?"No sales calls. Marketing nurtures by email and WhatsApp, and the lead is rescored when they act again.":"No sales action."));
+    }
+  }
+  const nav=el("div",{cls:"dnav"});
+  const prev=el("button",{cls:"btn",type:"button",text:"← Back",disabled:dmStep===0}); prev.addEventListener("click",()=>{dmStep=Math.max(0,dmStep-1);renderDemo();});
+  const next=el("button",{cls:"btn pri",type:"button",text:dmStep===DSTEPS.length-1?"Start again":"Next →"}); next.addEventListener("click",()=>{dmStep=dmStep===DSTEPS.length-1?0:dmStep+1;renderDemo();});
+  nav.append(prev,el("span",{cls:"hint",text:`Settings ${cfg===CFG?verLabel():"draft (unsaved)"}`}),next); stg.append(nav);
+  const fitShown=dmStep>=3?s.fit:0;
+  const rawSoFar=Math.max(0,s.items.filter(i=>i.side==="int"&&((i.stage==="page"&&dmStep>=2)||(i.stage==="behaviour"&&dmStep>=4))).reduce((a,i)=>a+i.pts,0));
+  const intShown=dmStep>=5?s.intent:rawSoFar;
+  $("dmFit").textContent=fitShown; $("dmInt").textContent=intShown;
+  $("dmIntLab").textContent=dmStep>=5?"Intent":"Intent (raw points)";
+  $("dmFitBar").style.width=clamp(fitShown/R.fitCap*100,0,100)+"%"; $("dmIntBar").style.width=clamp(intShown/R.intentCap*100,0,100)+"%";
+  $("dmFitTh").style.left=(R.fitMql/R.fitCap*100)+"%"; $("dmIntTh").style.left=(R.intentMql/R.intentCap*100)+"%";
+  $("dmFitHint").textContent=`MQL line at ${R.fitMql}`; $("dmIntHint").textContent=dmStep<5&&s.mult!==1?`×${s.mult} channel applies at step 6`:`MQL line at ${R.intentMql}`;
+  gridInto($("dmGrid"),cfg,{on:dmStep>=6?s.cell:null});
+}
+$("dmPick").addEventListener("change",()=>{dmStep=0;renderDemo();});
+$("dmDraft").addEventListener("change",renderDemo);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!$("sheet").hidden){closeWS();return;}
+  if($("v-dm").hidden||!$("sheet").hidden) return; const t=e.target.tagName; if(["INPUT","SELECT","TEXTAREA"].includes(t)) return;
+  if(e.key==="ArrowRight"){dmStep=Math.min(DSTEPS.length-1,dmStep+1);renderDemo();}
+  if(e.key==="ArrowLeft"){dmStep=Math.max(0,dmStep-1);renderDemo();}
+});
+
+/* ================= Scorecard ================= */
+const SC_CSS=`.sc{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:28px 30px;max-width:900px;min-width:640px;font:12.5px/1.45 var(--body)}
+.sc h1{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;margin:0}
+.sc .sub{color:var(--ink-3);font-size:12px;margin-top:4px}
+.sc .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:14px;gap:12px}
+.sc .rule{background:var(--court-soft);border-radius:6px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.sc .rule b{font-family:var(--mono)}
+.sc .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sc h2{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--court);margin:12px 0 4px}
+.sc table{border-collapse:collapse;width:100%}
+.sc td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.sc td.n{text-align:right;font-family:var(--mono);white-space:nowrap}
+.sc .g{display:grid;grid-template-columns:auto repeat(3,1fr);gap:3px;font-size:11px}
+.sc .g div{padding:5px 6px;border-radius:4px}
+.sc .g .hd{color:var(--ink-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.sc .g b{font-family:var(--display);font-size:15px;display:block}
+.sc .c-hot{background:var(--green-soft)}.sc .c-mql{background:var(--court-soft)}.sc .c-nur,.sc .c-none{background:var(--surface-2)}.sc .c-alt{background:var(--amber-soft)}
+.sc .foot{margin-top:14px;border-top:1px solid var(--line);padding-top:8px;color:var(--ink-3);font-size:11px;display:flex;justify-content:space-between;gap:10px}`;
+$("scStyle").textContent=SC_CSS;
+function scorecardNode(){
+  const cfg=CFG,R=cfg.rules,rr=rulesRows(cfg),P=cfg.playbooks;
+  const tbl=rows=>el("table",{},el("tbody",{},rows.map(r=>el("tr",{},[el("td",{text:r[0]}),el("td",{cls:"n",text:r[1]})]))));
+  const g=el("div",{cls:"g"},[el("div",{cls:"hd"}),el("div",{cls:"hd",text:`Intent ${R.intent1}+`}),el("div",{cls:"hd",text:`Intent ${R.intentMql}–${R.intent1-1}`}),el("div",{cls:"hd",text:`Intent <${R.intentMql}`})]);
+  [["A",`Fit ${R.fitA}+`],["B",`Fit ${R.fitMql}–${R.fitA-1}`],["C",`Fit <${R.fitMql}`]].forEach(([r,l])=>{g.append(el("div",{cls:"hd",text:l}));["1","2","3"].forEach(c=>g.append(el("div",{cls:CELLCLS[r+c]},[el("b",{text:r+c}),document.createTextNode(cfg.cells[r+c])])));});
+  const sla=Object.keys(P).map(k=>[P[k].label,`first call ≤ ${P[k].firstHrs} hrs · ${P[k].touches.length} touches · recycle day ${P[k].recycleDay}`]);
+  sla.push(["C1","dealer within 24 hrs"],["A3, B3, C2","nurture, no calls"]);
+  return el("div",{cls:"sc"},[
+    el("div",{cls:"top"},[el("div",{},[el("h1",{text:"MQL Scorecard"}),el("div",{cls:"sub",text:"Acrylic sports flooring · tennis, pickleball, badminton, basketball, volleyball"})]),el("div",{cls:"sub",text:`Settings ${verLabel()}${META.at?" · "+fmtDate(META.at):""}`})]),
+    el("div",{cls:"rule",html:`<b>MQL</b> = Fit ≥ <b>${R.fitMql}</b> AND Intent ≥ <b>${R.intentMql}</b> &nbsp;·&nbsp; or any fast-track trigger &nbsp;·&nbsp; Fit 0–${R.fitCap}, Intent 0–${R.intentCap}`}),
+    el("div",{cls:"two"},[
+      el("div",{},[el("h2",{text:"Fit: who they are (explicit)"}),tbl(rr.fit)]),
+      el("div",{},[el("h2",{text:"Intent: what they did (implicit)"}),tbl(rr.int),el("h2",{text:"Channel multiplier on intent"}),tbl(rr.ch)])
+    ]),
+    el("div",{cls:"two"},[
+      el("div",{},[el("h2",{text:"Routing grid"}),g,el("h2",{text:"Response SLA by grade"}),tbl(sla)]),
+      el("div",{},[el("h2",{text:"Overrides"}),tbl(rr.ov.map(r=>[r[0]+": "+r[1],""])),el("h2",{text:"SQL gate"}),el("div",{text:"Project confirmed · site/base status known · decision-maker identified · timeline ≤ 6 months or budget indicated · dealer named."}),el("h2",{text:"Sales feedback"}),el("div",{text:`Mark junk MQLs with a reason. Target: ≥ ${R.acceptTarget}% of worked MQLs are not junk. Below that, raise thresholds before adding criteria.`})])
+    ]),
+    el("div",{cls:"foot"},[el("span",{text:"Intent = (deepest page + behaviour + timeline) × channel × decay · Expected installs skip each region's monsoon window"}),el("span",{text:"Source: Court Lead MQL Desk"})])
+  ]);
+}
+function renderScorecard(){const s=$("scSheet"); s.innerHTML=""; s.append(scorecardNode());}
+function scorecardHTML(){
+  const light=`:root{--bg:#ffffff;--surface:#ffffff;--surface-2:#eef2f1;--line:#cdd8d4;--ink:#14232b;--ink-2:#4a5d64;--ink-3:#6b7c81;--court:#1d5c9e;--court-soft:#dbe7f4;--green-soft:#dcefe5;--amber-soft:#f6ead6;--display:"Barlow Condensed","Arial Narrow",sans-serif;--body:"IBM Plex Sans",Arial,sans-serif;--mono:"IBM Plex Mono",Consolas,monospace}
+body{margin:0;padding:20px;background:#fff}.sc{border:0;min-width:0;margin:0 auto}@page{size:A4;margin:12mm}@media print{body{padding:0}}`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>MQL Scorecard ${verLabel()}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap"><style>${light}\n${SC_CSS}</style></head><body>${scorecardNode().outerHTML}</body></html>`;
+}
+$("scDl").addEventListener("click",async()=>{
+  const html=scorecardHTML(); let dl=null; try{dl=await claude.use("downloads");}catch(e){}
+  if(dl){try{await dl.save({filename:`mql-scorecard-${verLabel()}.html`,data:html});$("scMsg").textContent="Saved. Open the file in your browser and print it, or save it as PDF.";$("scBox").hidden=true;return;}catch(e){if(e&&e.code==="declined")return;}}
+  $("scText").value=html; $("scBox").hidden=false; $("scText").select();
+});
+
+/* ================= Settings editor ================= */
+let canEditSettings=false;
+const isDirty=()=>JSON.stringify(normalize(draft))!==JSON.stringify(CFG);
+function getPath(o,p){return p.split(".").reduce((a,k)=>a&&a[k],o);}
+function setPath(o,p,v){const ks=p.split("."),last=ks.pop();ks.reduce((a,k)=>a[k],o)[last]=v;}
+function numInput(label,path,step=1,hint){
+  const id="s_"+path.replace(/\./g,"_");
+  const inp=el("input",{type:"number",id,step,value:getPath(draft,path)});
+  inp.addEventListener("input",()=>{setPath(draft,path,inp.value===""?0:parseFloat(inp.value));onDraft();});
+  return el("div",{cls:"f"},[el("label",{for:id,text:label}),inp,hint?el("span",{cls:"hint",text:hint}):null]);
+}
+function textInput(label,path){
+  const id="s_"+path.replace(/\./g,"_");
+  const inp=el("input",{type:"text",id,value:getPath(draft,path)});
+  inp.addEventListener("input",()=>{setPath(draft,path,inp.value);onDraft();});
+  return el("div",{cls:"f full"},[el("label",{for:id,text:label}),inp]);
+}
+function listEditor(path,cols,factory,note){
+  const box=el("div"); const arr=getPath(draft,path); const pid=path.replace(/\./g,"_");
+  const t=el("table",{cls:"le"});
+  t.append(el("thead",{},el("tr",{},[...cols.map(c=>el("th",{text:c.h})),el("th")])));
+  const tb=el("tbody");
+  arr.forEach((row,i)=>{
+    const tr=el("tr");
+    cols.forEach(c=>{
+      const id=`s_${pid}_${i}_${c.k}`; let inp;
+      if(c.type==="text"){inp=el("input",{type:"text",id,value:row[c.k]??"","aria-label":c.h});inp.addEventListener("input",()=>{row[c.k]=inp.value;onDraft();});}
+      else if(c.type==="num"){inp=el("input",{type:"number",id,step:c.step||1,value:row[c.k]??0,"aria-label":c.h});inp.addEventListener("input",()=>{row[c.k]=inp.value===""?0:parseFloat(inp.value);onDraft();});}
+      else if(c.type==="check"){inp=el("input",{type:"checkbox",id,"aria-label":c.h});inp.checked=!!row[c.k];inp.addEventListener("change",()=>{row[c.k]=inp.checked;onDraft();});}
+      else if(c.type==="select"){inp=el("select",{id,"aria-label":c.h});c.options.forEach(([v,l])=>inp.append(el("option",{value:v,text:l})));inp.value=row[c.k];inp.addEventListener("change",()=>{row[c.k]=inp.value;onDraft();});}
+      tr.append(el("td",{cls:c.type==="check"?"c":""},inp));
+    });
+    const x=el("button",{cls:"xbtn",type:"button",title:"Remove","aria-label":"Remove row",text:"×"});
+    x.addEventListener("click",()=>{arr.splice(i,1);renderSettings();onDraft();});
+    tr.append(el("td",{},x)); tb.append(tr);
+  });
+  t.append(tb);
+  const add=el("button",{cls:"btn sm",type:"button",text:"+ Add row"}); add.addEventListener("click",()=>{arr.push(factory());renderSettings();onDraft();});
+  box.append(el("div",{cls:"tscroll"},t),el("div",{cls:"btns",style:"margin-top:8px"},[add,note?el("span",{cls:"hint",text:note}):null]));
+  return box;
+}
+function panel(title,kids,wide){return el("div",{cls:"panel"+(wide?" wide":"")},[el("h3",{text:title}),...kids]);}
+function renderSettings(){
+  const b=$("stBody"); const scrollY=window.scrollY; b.innerHTML="";
+  b.append(panel("MQL rule and grid thresholds",[el("div",{cls:"fg3"},[
+    numInput("MQL: minimum Fit","rules.fitMql",1),numInput("MQL: minimum Intent","rules.intentMql",1),numInput("Sales acceptance target %","rules.acceptTarget",1),
+    numInput("Fit A starts at","rules.fitA",1),numInput("Intent 1 (high) starts at","rules.intent1",1),el("div"),
+    numInput("Fit cap","rules.fitCap",1),numInput("Intent cap","rules.intentCap",1)]),
+    el("label",{cls:"chk",for:"s_t1q",style:"margin-top:10px"},[(()=>{const i=el("input",{type:"checkbox",id:"s_t1q"});i.checked=!!draft.rules.tier1QuoteFast;i.addEventListener("change",()=>{draft.rules.tier1QuoteFast=i.checked;onDraft();});return i;})(),document.createTextNode("Fast-track any Tier 1 organisation that submits a quote request")])],true));
+  b.append(panel("ICP · organisation types",[listEditor("orgs",[{k:"l",h:"Segment",type:"text"},{k:"tier",h:"Tier",type:"select",options:TIERS},{k:"pts",h:"Fit pts",type:"num"}],()=>({v:slug("org"),l:"New segment",tier:"2",pts:10}),"Partner track goes to the dealer team. Disqualify removes the lead.")],true));
+  b.append(panel("Explicit criteria",[el("div",{cls:"fg"},[
+    numInput("Decision-maker role","roles.dm"),numInput("Influencer role","roles.inf"),
+    numInput("Large project: courts from","size.bigCourts"),numInput("Large project: area from (m²)","size.bigArea",50),
+    numInput("Large project points","size.bigPts"),numInput("1–2 courts points","size.smallPts"),
+    numInput("Inside service region","region.in"),numInput("Outside service region","region.out"),
+    numInput("New build","project.new"),numInput("Resurfacing","project.resurf"),
+    numInput("Indoor competition court","indoor")])]));
+  b.append(panel("Other fit criteria (yes / no)",[listEditor("fitExtras",[{k:"l",h:"Criterion",type:"text"},{k:"pts",h:"Fit pts",type:"num"}],()=>({v:slug("fx"),l:"Budget approved",pts:5}),"Each one becomes a checkbox on the Score a lead form.")]));
+  b.append(panel("Landing & contact pages (deepest page reached)",[listEditor("pages",[{k:"l",h:"Page",type:"text"},{k:"tier",h:"Tier",type:"text"},{k:"pts",h:"Intent pts",type:"num"},{k:"fast",h:"Fast-track",type:"check"}],()=>({v:slug("page"),l:"New page",tier:"P2",pts:10,fast:false}))],true));
+  b.append(panel("Implicit behaviour",[listEditor("beh",[{k:"l",h:"Behaviour",type:"text"},{k:"pts",h:"Intent pts",type:"num"},{k:"fast",h:"Fast-track",type:"check"}],()=>({v:slug("beh"),l:"New behaviour",pts:5,fast:false}))],true));
+  b.append(panel("Timeline (adds to intent)",[listEditor("timeline",[{k:"l",h:"Timeline",type:"text"},{k:"pts",h:"Intent pts",type:"num"}],()=>({v:slug("t"),l:"New option",pts:0}))]));
+  b.append(panel("Search and decay",[el("div",{cls:"fg"},[
+    numInput("Search, buying query ×","rules.searchBuy",0.1),numInput("Search, informational query ×","rules.searchInfo",0.1),
+    numInput("Decay factor per period","rules.decayFactor",0.05,"1 = no decay"),numInput("Decay period (days)","rules.decayDays",1)])]));
+  b.append(panel("Channels",[listEditor("channels",[{k:"l",h:"Channel",type:"text"},{k:"m",h:"Multiplier",type:"num",step:0.1},{k:"search",h:"Search",type:"check"}],()=>({v:slug("ch"),l:"New channel",m:1,search:false}),"Ticking Search uses the buying / informational multipliers instead.")],true));
+  b.append(panel("Routing text for each grid cell",[el("div",{cls:"fg3"},["A1","A2","A3","B1","B2","B3","C1","C2","C3"].map(k=>{const id="s_cell_"+k;const i=el("input",{type:"text",id,value:draft.cells[k]});i.addEventListener("input",()=>{draft.cells[k]=i.value;onDraft();});return el("div",{cls:"f"},[el("label",{for:id,text:k}),i]);}))],true));
+  b.append(panel("Dealer directory",[listEditor("dealers",[{k:"l",h:"Dealer",type:"text"},{k:"area",h:"Territory / cities",type:"text"}],()=>({v:slug("dl"),l:"New dealer",area:""}),"Names here are suggested when assigning a dealer, so dealer performance adds up correctly.")],true));
+  Object.keys(draft.playbooks).forEach(k=>{
+    const pre="playbooks."+k;
+    b.append(panel(`Sales playbook · ${draft.playbooks[k].label}`,[el("div",{cls:"fg3"},[
+      textInput("Playbook name",pre+".label"),
+      numInput("First response (hrs)",pre+".firstHrs"),numInput("Recycle to Not ready on day",pre+".recycleDay"),numInput("Dealer accepts within (hrs)",pre+".dealerHrs"),
+      numInput("Site visit within (days)",pre+".surveyDays"),numInput("Quote after visit (days)",pre+".quoteDays"),numInput("Client follow-up after quote (days)",pre+".followDays"),
+      numInput("Dealer update every (days)",pre+".dealerUpdateDays")]),
+      el("h3",{text:"Contact cadence",style:"margin-top:12px"}),
+      listEditor(pre+".touches",[{k:"day",h:"Day",type:"num"},{k:"a",h:"Touch",type:"text"}],()=>({day:0,a:"New touch"}),"Touches run in order. When they run out, the lead recycles on the day above.")],true));
+  });
+  b.append(panel("Monsoon windows (no outdoor coating)",[
+    el("label",{cls:"chk",for:"s_mon_on"},[(()=>{const i=el("input",{type:"checkbox",id:"s_mon_on"});i.checked=!!draft.monsoon.on;i.addEventListener("change",()=>{draft.monsoon.on=i.checked;onDraft();});return i;})(),document.createTextNode("Push expected installation past the monsoon for the lead's region")]),
+    listEditor("monsoon.regions",[{k:"l",h:"Region",type:"text"},{k:"match",h:"Cities / states it matches",type:"text"},{k:"from",h:"From (MM-DD)",type:"text"},{k:"to",h:"To (MM-DD)",type:"text"}],()=>({v:slug("mon"),l:"New region",match:"",from:"06-10",to:"09-30"}),"A lead's city is matched against these words. “*” is the default for anything unmatched.")],true));
+  b.append(panel("Stage SLAs (days)",[el("div",{cls:"fg3"},[
+    numInput("Discovery → SQL decision","sla.discoveryDays"),numInput("Negotiation","sla.negotiationDays"),numInput("Tender bid / evaluation","sla.tenderDays"),
+    numInput("Hot → PO + advance","sla.hotDays"),numInput("Won → installation kickoff","sla.kickoffDays"),numInput("New concrete base curing","sla.curingDays"),numInput("Installation","sla.installDays"),
+    numInput("Handover → advocacy","sla.handoverDays"),numInput("Monsoon booking: keep-warm call every","sla.bookedTouchDays"),numInput("Monsoon booking: confirm slot days before","sla.slotConfirmDays"),numInput("Not ready recall (default)","sla.recallDays"),numInput("C1 dealer check","sla.dealerDirectCheckDays")])],true));
+  window.scrollTo(0,scrollY);
+  updateSaveBar();
+}
+function onDraft(){updateSaveBar(); if(!$("v-dm").hidden) renderDemo();}
+function validate(c){
+  const R=c.rules, errs=[];
+  if(R.fitA<=R.fitMql) errs.push("Fit A must start above the MQL minimum Fit.");
+  if(R.intent1<=R.intentMql) errs.push("Intent 1 must start above the MQL minimum Intent.");
+  if(R.fitMql>R.fitCap||R.intentMql>R.intentCap) errs.push("MQL minimums can't be above the caps.");
+  ["orgs","pages","beh","channels","timeline","fitExtras","dealers"].forEach(k=>{if(c[k].some(x=>!String(x.l||"").trim())) errs.push("Every row needs a name.");});
+  Object.values(c.playbooks).forEach(p=>{if(!p.touches.length) errs.push("Each playbook needs at least one touch."); if(p.touches.some(t=>!String(t.a||"").trim())) errs.push("Every touch needs a description.");});
+  if(!c.channels.length) errs.push("Keep at least one channel.");
+  if((c.monsoon.regions||[]).some(x=>!MMDD.test(String(x.from||""))||!MMDD.test(String(x.to||"")))) errs.push("Monsoon dates must be MM-DD, e.g. 06-10.");
+  if((c.monsoon.regions||[]).some(x=>!String(x.l||"").trim())) errs.push("Every monsoon region needs a name.");
+  return [...new Set(errs)];
+}
+function updateSaveBar(){
+  const d=isDirty(); $("saveBar").classList.toggle("dirty",d);
+  $("stState").textContent=d?"Unsaved changes":`No unsaved changes · ${verLabel()} in use`;
+  $("stSave").disabled=!d||!db||!canEditSettings; $("stDiscard").disabled=!d;
+  const errs=d?validate(normalize(draft)):[];
+  const imp=$("stImpact");
+  if(errs.length){imp.textContent="Fix before saving: "+errs.join(" "); imp.style.color="var(--red)"; $("stSave").disabled=true; return;}
+  imp.style.color="";
+  if(!db) imp.textContent="Saving settings needs a signed-in claude.ai view of this page.";
+  else if(!canEditSettings) imp.textContent="Only editors of this page can save scoring settings. You can still try changes and preview them in the Live demo.";
+  else if(d&&leads.length){
+    const nd=normalize(draft); let cellCh=0,newM=0,lostM=0;
+    leads.forEach(l=>{const a=score(l,CFG),b=score(l,nd); if(a.cell!==b.cell)cellCh++; if(a.mql!==b.mql){b.mql?newM++:lostM++;}});
+    imp.textContent=`Impact on ${leads.length} saved leads: ${cellCh} would move grid cell; ${newM} would become MQL, ${lostM} would stop being MQL.`;
+  } else imp.textContent=d?"No saved leads yet to measure the impact on.":"";
+}
+$("stDiscard").addEventListener("click",()=>{draft=clone(CFG);renderSettings();onDraft();});
+$("stReset").addEventListener("click",()=>{draft=clone(normalize(DEFAULTS));renderSettings();onDraft();$("stMsg").textContent="Defaults loaded as a draft. Save to apply them.";});
+$("stSave").addEventListener("click",async()=>{
+  const cfg=normalize(draft), errs=validate(cfg); if(errs.length) return;
+  const note=$("stNote").value.trim(); if(!note){$("stMsg").style.color="var(--red)";$("stMsg").textContent="Add a short note on what changed.";return;}
+  $("stSave").disabled=true; const now=Date.now(), ver=(META.version||0)+1; let uid=null; try{uid=user?await user.id():null;}catch(e){}
+  try{
+    await db.collection("settings_history").add({config:cfg,version:ver,at:now,by:uid,note});
+    await db.doc("settings/current").set({config:cfg,version:ver,at:now,by:uid,note});
+    $("stNote").value=""; $("stMsg").style.color="var(--green)"; $("stMsg").textContent=`Saved as v${ver}.`;
+  }catch(e){$("stMsg").style.color="var(--red)";$("stMsg").textContent="Not saved: "+(e&&e.code==="not_granted"?"only editors can change scoring settings.":(e&&e.message)||"try again.");}
+  updateSaveBar();
+});
+let verHistory=[];
+function renderHistory(){
+  const h=$("stHist"); h.innerHTML="";
+  if(!verHistory.length){h.append(el("p",{cls:"hint",text:"No saved versions yet. The defaults are in use until you save one."}));return;}
+  verHistory.forEach(v=>{
+    const load=el("button",{cls:"btn sm",type:"button",text:"Load into editor"});
+    load.addEventListener("click",()=>{draft=clone(normalize(v.config));renderSettings();onDraft();$("stMsg").style.color="var(--green)";$("stMsg").textContent=`v${v.version} loaded as a draft. Save to make it current again.`;window.scrollTo({top:0,behavior:"smooth"});});
+    h.append(el("div",{cls:"histrow"},[el("div",{},[el("b",{cls:"mono",text:`v${v.version}`}),document.createTextNode(` · ${fmtDate(v.at)} · ${v.note||""}`),v.version===META.version?el("span",{cls:"verchip",text:"current"}):null]),load]));
+  });
+}
+const AUTO_STAGES=["new","nurture","dealer_direct","partner","disq"];
+$("rescoreBtn").addEventListener("click",async()=>{
+  if(!db) return; const btn=$("rescoreBtn"), msg=$("rescoreMsg"); btn.disabled=true; let n=0;
+  try{
+    for(const l of leads){
+      const s=score(l,CFG); const st=stageOf(l); const untouched=(l.history||[]).length<=1&&AUTO_STAGES.includes(st)&&!num(l.attempts);
+      const patch={fit:s.fit,intent:s.intent,cell:s.cell,mql:s.mql,fastTrack:s.fast,mult:s.mult,configVersion:META.version};
+      if(untouched&&st!==s.stage){patch.stage=s.stage;patch.stageAt=Date.now();}
+      if(l.fit!==s.fit||l.intent!==s.intent||l.cell!==s.cell||l.mql!==s.mql||patch.stage||l.configVersion!==META.version){await db.doc("leads/"+l.id).update({...patch,updatedAt:Date.now()});n++;}
+    }
+    msg.style.color="var(--green)"; msg.textContent=`${n} lead${n===1?"":"s"} updated to ${verLabel()}.`;
+  }catch(e){msg.style.color="var(--red)";msg.textContent="Stopped: "+(e&&e.message||"try again");}
+  btn.disabled=false;
+});
+
+/* ================= Leads: save ================= */
+let db=null, user=null, leads=[], selected=null, actUnsub=null, acts=[];
+function banner(t){const b=$("dbBanner"); b.textContent=t; b.hidden=!t;}
+$("lf").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const {L,s}=updateScore(); const msg=$("saveMsg");
+  if(!L.name){msg.textContent="Add a contact name before saving."; msg.style.color="var(--red)"; return;}
+  if(!db){msg.textContent="Saving needs a signed-in claude.ai view of this page."; msg.style.color="var(--red)"; return;}
+  $("saveBtn").disabled=true;
+  const now=Date.now(); let uid=null; try{uid=user?await user.id():null;}catch(_){}
+  const tender=L.org==="municipal"||(L.beh||[]).includes("rfq");
+  const rec={...L,days:num(L.days),area:L.area?num(L.area):null,fit:s.fit,intent:s.intent,cell:s.cell,mql:s.mql,fastTrack:s.fast,mult:s.mult,
+    configVersion:META.version,stage:s.stage,stageAt:now,track:tender?"tender":"std",attempts:0,chk:{},base:L.proj==="resurf"?"resurf":"",dealer:"",value:null,
+    createdAt:now,updatedAt:now,createdBy:uid,history:[{at:now,stage:s.stage}]};
+  try{await db.collection("leads").add(rec); msg.style.color="var(--green)"; msg.textContent=`Saved · ${s.label} (${s.cell}) · ${ST[s.stage].l}. It's on the Pipeline.`; fillForm({});}
+  catch(err){msg.style.color="var(--red)"; msg.textContent="Not saved: "+(err&&err.code==="not_granted"?"you have view-only access to this page.":(err&&err.message)||"try again.");}
+  $("saveBtn").disabled=false;
+});
+
+/* ================= Pipeline board ================= */
+function stagePill(k){const ph=ST[k]?.ph;const cls=k==="won"||k==="install"||k==="handover"?"p-mql":ph==="out"?"p-dq":ph==="park"?(k==="nurture"?"p-no":"p-alt"):"p-st";return el("span",{cls:"pill "+cls,text:ST[k]?.l||k});}
+function boardLeads(){
+  const g=$("bGrade").value,q=$("bQ").value.toLowerCase();
+  return leads.filter(l=>(!g||pbKey(l)===g)&&(!q||[l.name,l.company,l.city,l.dealer].join(" ").toLowerCase().includes(q)));
+}
+function renderBoard(){
+  const gs=$("bGrade"),cur=gs.value; gs.innerHTML=""; gs.append(el("option",{value:"",text:"All grades"})); Object.keys(CFG.playbooks).forEach(k=>gs.append(el("option",{value:k,text:CFG.playbooks[k].label}))); gs.value=cur;
+  const L=boardLeads(), b=$("board"); b.innerHTML="";
+  const anyTender=L.some(l=>["bid","eval"].includes(stageOf(l)));
+  const showT=$("bTender").checked||anyTender;
+  const PHN={contact:"Contact",qualify:"Qualify",opp:"Opportunity",close:"Close",deliver:"Deliver"};
+  BOARD_COLS.filter(k=>showT||!["bid","eval"].includes(k)).forEach(k=>{
+    const inCol=L.filter(l=>stageOf(l)===k).map(l=>({l,na:nextAction(l)})).sort((a,b)=>((a.na&&a.na.due)||9e15)-((b.na&&b.na.due)||9e15));
+    const val=inCol.reduce((s,x)=>s+num(x.l.value),0);
+    const col=el("div",{cls:"col"},[el("div",{cls:"ch"},[el("span",{cls:"k",text:PHN[ST[k].ph]}),el("b",{text:ST[k].l}),el("span",{cls:"m",text:`${inCol.length}${val?" · "+inr(val):""}`})])]);
+    inCol.forEach(({l,na})=>{
+      const days=Math.floor((Date.now()-(l.stageAt||l.createdAt||Date.now()))/D);
+      const card=el("button",{type:"button",cls:"card"+(na&&(na.late||na.dealerLate)?" od":"")},[
+        el("span",{cls:"nm",text:l.name||"Unnamed"}),
+        el("span",{cls:"row2"},[el("span",{text:l.company||l.city||""}),el("span",{cls:"mono",text:l.cell+(l.fastTrack?" ⚡":"")})]),
+        na?el("span",{cls:"na"+(na.late?" late":""),text:`${na.t.length>70?na.t.slice(0,68)+"…":na.t} · ${dueTxt(na.due)}`}):null,
+        na&&na.dealerLate?el("span",{cls:"na late",text:"Dealer update overdue"}):null,
+        el("span",{cls:"row2"},[el("span",{text:l.dealer?("Dealer: "+l.dealer):(l.assigned||"")}),el("span",{text:`${days}d in stage${l.value?" · "+inr(l.value):""}`})])]);
+      card.addEventListener("click",()=>openWS(l.id)); col.append(card);
+    });
+    if(!inCol.length) col.append(el("span",{cls:"hint",text:"None"}));
+    b.append(col);
+  });
+  const pk=$("parked"); pk.innerHTML="";
+  ["notready","nurture","dealer_direct","partner","junk","lost","disq"].forEach(k=>{
+    const n=L.filter(l=>stageOf(l)===k).length;
+    const bt=el("button",{type:"button",text:`${ST[k].l}: ${n}`}); bt.addEventListener("click",()=>{$("fStatus").value=k;showTab("tr");renderTable();}); pk.append(bt);
+  });
+  renderPipeStats();
+}
+["bGrade","bQ","bTender"].forEach(id=>$(id).addEventListener("input",renderBoard));
+function median(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function maxRank(l){let r=-1;(l.history||[]).concat([{stage:stageOf(l)}]).forEach(h=>{if(h.stage in RANK)r=Math.max(r,RANK[h.stage]);});return r;}
+function renderPipeStats(){
+  const M=leads.filter(l=>l.mql), open=M.filter(l=>OPEN_STAGES.includes(stageOf(l)));
+  const val=open.reduce((s,l)=>s+num(l.value),0);
+  const bk=leads.filter(l=>stageOf(l)==="booked"); $("pOpen").textContent=open.length; $("pOpenSub").textContent=(val?inr(val)+" estimated value":"Add deal values in each lead")+(bk.length?` · ${bk.length} monsoon booking${bk.length>1?"s":""}`:"");
+  const over=leads.filter(l=>{const na=nextAction(l);return na&&(na.late||na.dealerLate);});
+  $("pOver").textContent=over.length; $("pOver").style.color=over.length?"var(--red)":"";
+  $("pOverSub").textContent=over.length?`${over.filter(l=>nextAction(l).dealerLate).length} waiting on dealer updates`:"All on time";
+  const sp=M.filter(l=>l.firstTouchAt).map(l=>(l.firstTouchAt-l.createdAt)/H); const md=median(sp);
+  $("pSpeed").textContent=md==null?"–":(md<10?md.toFixed(1):Math.round(md))+" h";
+  const won=leads.filter(l=>maxRank(l)>=RANK.won).length, lost=leads.filter(l=>stageOf(l)==="lost").length;
+  $("pWin").textContent=(won+lost)?Math.round(won/(won+lost)*100)+"%":"–";
+  const steps=[["MQLs",M.length],["Reached",M.filter(l=>maxRank(l)>=RANK.connected).length],["SQL",M.filter(l=>maxRank(l)>=RANK.sql).length],["Quote sent",M.filter(l=>maxRank(l)>=RANK.proposal).length],["Won",M.filter(l=>maxRank(l)>=RANK.won).length],["Handed over",M.filter(l=>maxRank(l)>=RANK.handover).length]];
+  const f=$("funnel"); f.innerHTML="";
+  steps.forEach(([n,c],i)=>{const prev=i?steps[i-1][1]:c; const pct=M.length?c/M.length*100:0;
+    f.append(el("div",{cls:"fr"},[el("span",{text:n}),el("div",{cls:"fb"},el("i",{cls:i>=4?"w":"",style:`width:${pct}%`})),el("span",{cls:"nn",text:`${c}${i&&prev?` · ${Math.round(c/prev*100)}%`:""}`})]));});
+  if(!M.length) f.append(el("p",{cls:"hint",text:"The funnel fills in as MQLs are saved and worked."}));
+  const rows=Object.keys(CFG.playbooks).map(k=>{const g=M.filter(l=>pbKey(l)===k); const r=g.filter(l=>maxRank(l)>=RANK.connected).length, s=g.filter(l=>maxRank(l)>=RANK.sql).length, w=g.filter(l=>maxRank(l)>=RANK.won).length;
+    const m=median(g.filter(l=>l.firstTouchAt).map(l=>(l.firstTouchAt-l.createdAt)/H));
+    return [CFG.playbooks[k].label,String(g.length),g.length?Math.round(r/g.length*100)+"%":"–",g.length?Math.round(s/g.length*100)+"%":"–",String(w),m==null?"–":`${m.toFixed(1)} / ${CFG.playbooks[k].firstHrs} h`];});
+  fillTable($("byGrade"),["Playbook","MQLs","Reached","SQL","Won","First touch vs SLA"],rows,false);
+  const cnt=(arr,key)=>{const c={};arr.forEach(l=>{const k=l[key]||"No reason";c[k]=(c[k]||0)+1;});return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,String(v)]);};
+  const lr=cnt(leads.filter(l=>stageOf(l)==="lost"),"lostReason"), jr=cnt(leads.filter(l=>stageOf(l)==="junk"),"rejectReason");
+  fillTable($("lostTbl"),["Reason","Deals"],lr.length?lr:[["No lost deals yet",""]]);
+  const dp={}; const dget=n=>dp[n]=dp[n]||{n:0,acc:0,ontime:0,dec:0,visit:0,quote:0,won:0,lost:0,late:0,open:0};
+  leads.forEach(l=>{
+    (l.dealersTried||[]).forEach(t=>{if(t.name&&t.declined)dget(t.name).dec++;});
+    const name=String(l.dealer||"").trim(); if(!name||maxRank(l)<RANK.sql) return;
+    const d=dget(name), pb=CFG.playbooks[pbKey(l)]||CFG.playbooks.mql, r=maxRank(l), st=stageOf(l);
+    d.n++; if(l.dealerAcceptedAt){d.acc++; if(l.dealerAcceptedAt-(l.sqlAt||l.stageAt||0)<=num(pb.dealerHrs)*H)d.ontime++;}
+    if(r>RANK.sql)d.visit++; if(r>=RANK.proposal)d.quote++; if(r>=RANK.won)d.won++; if(st==="lost")d.lost++;
+    if(OPEN_STAGES.includes(st)){d.open++; const na=nextAction(l); if(na&&(na.late||na.dealerLate))d.late++;}
+  });
+  const pct=(a,b)=>b?Math.round(a/b*100)+"%":"–";
+  const drows=Object.entries(dp).sort((a,b)=>b[1].n-a[1].n).map(([k,d])=>[k,String(d.n),pct(d.ontime,d.n),String(d.dec),String(d.visit),String(d.quote),String(d.won),pct(d.won,d.won+d.lost),String(d.open),String(d.late)]);
+  fillTable($("dealerTbl"),["Dealer","SQLs","Accepted on time","Declined","Site visits","Quotes","Won","Win rate","Open","Overdue"],drows.length?drows:[["Dealer results appear once SQLs are assigned","","","","","","","","",""]],false);
+  fillTable($("junkTbl"),["Reason","MQLs"],jr.length?jr:[["No junk MQLs yet",""]]);
+}
+
+function suggestDealer(l){
+  const tried=new Set((l.dealersTried||[]).filter(t=>t.declined).map(t=>t.name));
+  let pool=CFG.dealers.filter(d=>!tried.has(d.l)); if(!pool.length) return null;
+  const city=String(l.city||"").toLowerCase().trim();
+  const local=pool.filter(d=>city&&String(d.area||"").toLowerCase().split(/[,/;]+/).map(a=>a.trim()).some(a=>a&&(city.includes(a)||a.includes(city))));
+  if(local.length) pool=local;
+  const since=Date.now()-30*D;
+  const st=pool.map(d=>({d,n:leads.filter(x=>x.dealer===d.l&&(x.sqlAt||0)>=since).length,last:Math.max(0,...leads.filter(x=>x.dealer===d.l).map(x=>x.sqlAt||0))})).sort((a,b)=>a.n-b.n||a.last-b.last);
+  return {name:st[0].d.l,why:`${local.length?"Covers "+l.city:"No territory match for this city, so all dealers considered"} · ${st[0].n} SQL${st[0].n===1?"":"s"} in the last 30 days${tried.size?" · skips "+[...tried].join(", ")+" (declined)":""}`};
+}
+
+/* ================= Lead workspace ================= */
+function closeWS(){ $("sheet").hidden=true; $("scrim").hidden=true; selected=null; if(actUnsub){actUnsub();actUnsub=null;} acts=[]; }
+$("scrim").addEventListener("click",closeWS);
+function openWS(id){
+  if(selected!==id){ if(actUnsub){actUnsub();actUnsub=null;} acts=[];
+    if(db){actUnsub=db.collection(`leads/${id}/activities`).onSnapshot(s=>{acts=s.docs.map(d=>({id:d.id,...d.data()}));if(selected===id)renderWS();},()=>{});} }
+  selected=id; wsMode=null; wsSnap=JSON.stringify(leads.find(x=>x.id===id)||null); $("sheet").hidden=false; $("scrim").hidden=false; renderWS(); $("sheet").scrollTop=0;
+}
+let wsMode=null;
+async function patchLead(l,patch){ await db.doc("leads/"+l.id).update({...patch,updatedAt:Date.now()}); }
+async function moveStage(l,k,extra={},note){
+  const now=Date.now(), h=(l.history||[]).slice(); h.push({at:now,stage:k,note:note||""});
+  await patchLead(l,{stage:k,stageAt:now,history:h,...extra});
+}
+function renderWS(){
+  const sh=$("sheet"); const l=leads.find(x=>x.id===selected); sh.innerHTML="";
+  if(!l){closeWS();return;}
+  const st=stageOf(l), pk=pbKey(l), pb=pk?CFG.playbooks[pk]:null, na=nextAction(l), track=l.track||"std";
+  const msg=el("span",{cls:"toast",role:"status"});
+  const fail=e=>{msg.style.color="var(--red)";msg.textContent="Not saved: "+(e&&e.code==="not_granted"?"you have view-only access.":(e&&e.message)||"try again.");};
+  const closeB=el("button",{cls:"btn sm",type:"button",text:"Close"}); closeB.addEventListener("click",closeWS);
+  sh.append(el("div",{cls:"btns",style:"justify-content:space-between"},[el("h3",{cls:"t",text:l.name||"Unnamed lead"}),closeB]));
+  sh.append(el("div",{cls:"btns"},[stagePill(st),el("span",{cls:"pill p-st",text:`Cell ${l.cell}${l.fastTrack?" · fast-track":""}`}),pb?el("span",{cls:"hint",text:pb.label}):null,el("span",{cls:"hint",text:[l.company,l.city].filter(Boolean).join(" · ")})]));
+  sh.append(el("div",{cls:"hint",text:[l.email,l.phone].filter(Boolean).join(" · ")||"No contact details"}));
+  if(na) sh.append(el("div",{cls:"na-box"+(na.late||na.dealerLate?" late":"")},[el("span",{cls:"lab",text:`Next action · ${na.own}`}),el("b",{text:na.t}),el("span",{cls:"hint",text:na.due?`${fmtDT(na.due)} · ${dueTxt(na.due)}`:"No due date"}),na.dealerLate?el("span",{text:`Dealer hasn't updated in over ${pb?pb.dealerUpdateDays:7} days. Call the dealer, escalate to the sales team lead, and reassign if it continues.`}):null]));
+  if(l.mql||OPEN_STAGES.includes(st)){
+    const seq=SEQ[track]; const ri=seq.indexOf(st);
+    sh.append(el("div",{cls:"stepper"},seq.map((k,i)=>el("span",{cls:k===st?"cur":(ri>=0&&i<ri)?"done":"",text:ST[k].l}))));
+  }
+  // ---- Move stage
+  const mv=el("div",{cls:"sub"},[el("h3",{text:"Move stage"})]);
+  const seq=SEQ[track]; const idx=seq.indexOf(st);
+  const nextK=st==="booked"?"install":idx>=0&&idx<seq.length-1?seq[idx+1]:null;
+  const row=el("div",{cls:"btns"});
+  if(nextK&&!(CONTACT.includes(st)&&nextK!=="connected")&&st!=="connected"){
+    const b=el("button",{cls:"btn pri",type:"button",text:`Move to ${ST[nextK].l} →`});
+    b.addEventListener("click",async()=>{try{await moveStage(l,nextK);}catch(e){fail(e);}}); row.append(b);
+  }
+  if(CONTACT.includes(st)){const b=el("button",{cls:"btn pri",type:"button",text:"Reached them → Connected"}); b.addEventListener("click",async()=>{try{await moveStage(l,"connected",{firstTouchAt:l.firstTouchAt||Date.now()});}catch(e){fail(e);}}); row.append(b);}
+  const anySel=el("select",{id:"wsAny","aria-label":"Any stage"}); STAGES.filter(s=>s.k!==st).forEach(s=>anySel.append(el("option",{value:s.k,text:s.l})));
+  const anyB=el("button",{cls:"btn",type:"button",text:"Move"});
+  anyB.addEventListener("click",()=>{const k=anySel.value; if(["junk","lost","notready","sql","booked"].includes(k)){wsMode=k;renderWS();return;} moveStage(l,k).catch(fail);});
+  row.append(el("span",{cls:"hint",text:"or"}),el("div",{style:"min-width:180px"},anySel),anyB);
+  mv.append(row);
+  const outs=el("div",{cls:"btns"});
+  if(["hot","won"].includes(st)){const b=el("button",{cls:"btn sm",type:"button",text:"Book monsoon slot"}); b.addEventListener("click",()=>{wsMode="booked";renderWS();}); outs.append(b);}
+  [["junk","Not qualified (junk)"],["notready","Not ready · recall"],["lost","Closed lost"]].forEach(([k,t])=>{if(st===k)return; const b=el("button",{cls:"btn sm"+(k!=="notready"?" dan":""),type:"button",text:t}); b.addEventListener("click",()=>{wsMode=k;renderWS();}); outs.append(b);});
+  mv.append(outs);
+  if(wsMode==="junk"||wsMode==="lost"){
+    const rs=el("select",{id:"wsReason"}); rs.append(el("option",{value:"",text:"Choose a reason"})); (wsMode==="junk"?JUNK_REASONS:LOST_REASONS).forEach(r=>rs.append(el("option",{value:r,text:r})));
+    const comp=el("input",{type:"text",id:"wsComp",placeholder:"Competitor or detail (optional)"});
+    const ok=el("button",{cls:"btn dan",type:"button",text:wsMode==="junk"?"Mark as junk":"Mark as lost"});
+    ok.addEventListener("click",async()=>{if(!rs.value){msg.style.color="var(--red)";msg.textContent="Pick a reason. It feeds back into scoring and sales reviews.";return;}
+      try{await moveStage(l,wsMode,wsMode==="junk"?{rejectReason:rs.value}:{lostReason:rs.value,lostDetail:comp.value.trim()},rs.value+(comp.value?": "+comp.value:""));wsMode=null;}catch(e){fail(e);}});
+    mv.append(el("div",{cls:"fg"},[el("div",{cls:"f"},[el("label",{for:"wsReason",text:"Reason"}),rs]),el("div",{cls:"f"},[el("label",{for:"wsComp",text:"Detail"}),comp])]),el("div",{cls:"btns"},[ok]));
+  }
+  if(wsMode==="booked"){
+    const reg=regionFor(l.city), m=monsoonDelay(Date.now()+(num(CFG.sla.kickoffDays)+(l.base==="newbase"?num(CFG.sla.curingDays):0))*D,num(CFG.sla.installDays),reg);
+    const d=el("input",{type:"date",id:"wsSlot"}); d.value=new Date(m.resumeAt||Date.now()+30*D).toISOString().slice(0,10);
+    const adv=el("input",{type:"checkbox",id:"wsAdv"});
+    const ok=el("button",{cls:"btn pri",type:"button",text:"Confirm monsoon booking"});
+    ok.addEventListener("click",async()=>{if(!adv.checked){msg.style.color="var(--red)";msg.textContent="A booking needs the advance. Without it, keep the lead in Hot.";return;}
+      const t=Date.parse(d.value); if(!isFinite(t)){msg.style.color="var(--red)";msg.textContent="Pick the install slot date.";return;}
+      try{await moveStage(l,"booked",{bookedSlotAt:t,advanceAt:Date.now()},"Slot "+d.value);wsMode=null;}catch(e){fail(e);}});
+    mv.append(el("p",{cls:"hint",style:"margin:0",text:reg?`${reg.l}: no coating ${mmddTxt(reg.from)}–${mmddTxt(reg.to)}. ${m.resumeAt?"Earliest slot after the rains is "+fmtDate(m.resumeAt)+".":"Installation isn't blocked by the rains on the expected dates, so a normal Won may be better."}`:"No monsoon region matched this city."}),
+      el("div",{cls:"fg"},[el("div",{cls:"f"},[el("label",{for:"wsSlot",text:"Install slot from"}),d]),el("label",{cls:"chk",for:"wsAdv",style:"align-self:end"},[adv,document.createTextNode("PO and advance received")])]),el("div",{cls:"btns"},[ok]));
+  }
+  if(wsMode==="notready"){
+    const d=el("input",{type:"date",id:"wsRecall"}); const dflt=new Date(Date.now()+num(CFG.sla.recallDays)*D); d.value=dflt.toISOString().slice(0,10);
+    const ok=el("button",{cls:"btn pri",type:"button",text:"Park until recall date"});
+    ok.addEventListener("click",async()=>{const t=Date.parse(d.value); try{await moveStage(l,"notready",{recallAt:isFinite(t)?t:dflt.getTime()},"Recall "+d.value);wsMode=null;}catch(e){fail(e);}});
+    mv.append(el("div",{cls:"f"},[el("label",{for:"wsRecall",text:"Recall date"}),d]),el("div",{cls:"btns"},[ok]));
+  }
+  sh.append(mv);
+  // ---- SQL gate & deal details
+  const g=el("div",{cls:"sub"},[el("h3",{text:"SQL checklist & deal details"})]);
+  const chk={...(l.chk||{})};
+  const cb=(k,t)=>{const id="wsc_"+k;const i=el("input",{type:"checkbox",id});i.checked=!!chk[k];i.addEventListener("change",()=>{chk[k]=i.checked;});return el("label",{cls:"chk",for:id},[i,document.createTextNode(t)]);};
+  const base=el("select",{id:"wsBase"}); BASES.forEach(([v,t])=>base.append(el("option",{value:v,text:t}))); base.value=l.base||"";
+  const dealer=el("input",{type:"text",id:"wsDealer",value:l.dealer||"",placeholder:"Dealer for this territory",list:"dealerList"});
+  const dl=el("datalist",{id:"dealerList"},CFG.dealers.map(d=>el("option",{value:d.l,text:d.area||""})));
+  const sugHint=el("span",{cls:"hint"});
+  const sugB=el("button",{cls:"btn sm",type:"button",text:"Suggest dealer"});
+  sugB.addEventListener("click",()=>{const s=suggestDealer(l); if(!s){sugHint.textContent="Add dealers in Scoring settings → Dealer directory.";return;} dealer.value=s.name; sugHint.textContent=s.why; showGate();});
+  const tr=el("select",{id:"wsTrack"}); [["std","Standard (dealer quote)"],["tender","Tender / government"]].forEach(([v,t])=>tr.append(el("option",{value:v,text:t}))); tr.value=track;
+  const val=el("input",{type:"number",id:"wsVal",min:"0",step:"10000",value:l.value??""});
+  const asg=el("input",{type:"text",id:"wsAsg",value:l.assigned||"",placeholder:"Sales team owner"});
+  g.append(el("div",{cls:"checks"},[cb("project","Project confirmed (sport, courts / area)"),cb("dm","Decision-maker identified"),cb("timeline","Timeline ≤ 6 months or tender date"),cb("budget","Budget indicated or approved")]),
+    el("div",{cls:"fg"},[el("div",{cls:"f"},[el("label",{for:"wsBase",text:"Site and base status"}),base]),el("div",{cls:"f"},[el("label",{for:"wsDealer",text:"Dealer"}),dealer,dl,el("div",{cls:"btns"},[sugB,sugHint])]),
+      el("div",{cls:"f"},[el("label",{for:"wsTrack",text:"Sales track"}),tr]),el("div",{cls:"f"},[el("label",{for:"wsVal",text:"Estimated value (₹)"}),val]),
+      el("div",{cls:"f"},[el("label",{for:"wsAsg",text:"Sales team owner"}),asg])]));
+  const readG=()=>({chk,base:base.value,dealer:dealer.value.trim(),track:tr.value,value:val.value===""?null:num(val.value),assigned:asg.value.trim()});
+  const gateOut=el("div");
+  const showGate=()=>{gateOut.innerHTML="";const r=sqlCheck({...l,...readG()});gateOut.append(...r.rows.map(([t,ok])=>el("div",{cls:"okline "+(ok?"ok":"no"),text:(ok?"✓ ":"○ ")+t})));return r;};
+  g.addEventListener("change",showGate); g.addEventListener("input",showGate);
+  g.append(gateOut);
+  const withDealer=()=>{const g2=readG(); if(g2.dealer!==(l.dealer||"")){g2.dealerAcceptedAt=null; if(l.dealer) g2.dealersTried=[...(l.dealersTried||[]),{name:l.dealer,at:Date.now(),declined:false}];} return g2;};
+  const saveD=el("button",{cls:"btn",type:"button",text:"Save details"}); saveD.addEventListener("click",async()=>{try{await patchLead(l,withDealer());msg.style.color="var(--green)";msg.textContent="Saved";}catch(e){fail(e);}});
+  const toSql=el("button",{cls:"btn pri",type:"button",text:"Accept as SQL → dealer"});
+  toSql.addEventListener("click",async()=>{const r=showGate(); if(!r.ok){msg.style.color="var(--red)";msg.textContent="The SQL gate isn't met yet: tick the open items or park the lead as Not ready.";return;}
+    try{await moveStage(l,"sql",{...withDealer(),sqlAt:Date.now()},"SQL accepted · dealer "+dealer.value.trim());wsMode=null;}catch(e){fail(e);}});
+  g.append(el("div",{cls:"btns"},[saveD,RANK[st]!==undefined&&RANK[st]<RANK.sql||wsMode==="sql"||["notready"].includes(st)?toSql:null]));
+  sh.append(g); showGate();
+  // ---- Log activity
+  const la=el("div",{cls:"sub"},[el("h3",{text:"Log a call or activity"})]);
+  const ty=el("select",{id:"wsType"}); ACT.forEach(a=>ty.append(el("option",{value:a.k,text:a.l})));
+  const ou=el("select",{id:"wsOut"});
+  const fillOut=()=>{ou.innerHTML="";(ACT.find(a=>a.k===ty.value)||ACT[0]).outs.forEach(o=>ou.append(el("option",{value:o,text:o})));};
+  ty.value=CONTACT.includes(st)?(num(l.attempts)>=2?"aibot":"call"):["sql","survey","proposal","followup","negotiation","hot"].includes(st)?((na&&na.dealerLate)||(st==="sql"&&!l.dealerAcceptedAt)?"dealer":(st==="proposal"||st==="followup"?"client":"call")):"call";
+  fillOut(); ty.addEventListener("change",fillOut);
+  const nt=el("textarea",{id:"wsNote",placeholder:"What happened, what was agreed, next step"});
+  const logB=el("button",{cls:"btn pri",type:"button",text:"Log activity"});
+  logB.addEventListener("click",async()=>{
+    if(!db) return; const type=ty.value,out=ou.value,now=Date.now(); let uid=null; try{uid=user?await user.id():null;}catch(_){}
+    const patch={lastTouchAt:now}; let newStage=null;
+    if(["call","whatsapp","aibot","email"].includes(type)&&!l.firstTouchAt) patch.firstTouchAt=now;
+    if(type==="dealer"){patch.lastDealerAt=now;
+      if(out==="Accepted lead"&&!l.dealerAcceptedAt) patch.dealerAcceptedAt=now;
+      if(out==="Declined lead"){patch.dealersTried=[...(l.dealersTried||[]),{name:l.dealer||"",at:now,declined:true}]; patch.dealer=""; patch.dealerAcceptedAt=null;}}
+    if(CONTACT.includes(st)){
+      if(REACHED(out)) newStage="connected";
+      else if(NOREACH(out)||(type==="whatsapp"&&out==="Sent")||(type==="email"&&out==="Sent")){patch.attempts=num(l.attempts)+1; newStage=type==="aibot"?"aibot":(st==="new"?"attempt":null);}
+    }
+    if(type==="site"&&st==="sql") newStage="survey";
+    if(type==="quote"&&["sql","survey"].includes(st)) newStage="proposal";
+    if(type==="client"&&st==="proposal"&&track==="std") newStage="followup";
+    try{
+      await db.collection(`leads/${l.id}/activities`).add({at:now,type,out,note:nt.value.trim(),by:uid,stage:st});
+      if(newStage&&newStage!==st){const h=(l.history||[]).slice(); h.push({at:now,stage:newStage,note:"from activity"}); Object.assign(patch,{stage:newStage,stageAt:now,history:h});}
+      await patchLead(l,patch); nt.value=""; msg.style.color="var(--green)"; msg.textContent=newStage&&newStage!==st?`Logged · moved to ${ST[newStage].l}`:"Logged";
+    }catch(e){fail(e);}
+  });
+  la.append(el("div",{cls:"fg"},[el("div",{cls:"f"},[el("label",{for:"wsType",text:"Activity"}),ty]),el("div",{cls:"f"},[el("label",{for:"wsOut",text:"Outcome"}),ou]),el("div",{cls:"f full"},[el("label",{for:"wsNote",text:"Note"}),nt])]),el("div",{cls:"btns"},[logB,msg]));
+  if(CONTACT.includes(st)&&pb) la.append(el("p",{cls:"hint",text:`Attempts so far: ${num(l.attempts)} of ${pb.touches.length}. Unanswered calls move the lead along the no-answer loop; a reply moves it to Connected.`,style:"margin:0"}));
+  sh.append(la);
+  // ---- Timeline
+  const items=[...acts.map(a=>({at:a.at,k:"a",a})),...(l.history||[]).map(h=>({at:h.at,k:"s",h}))].sort((a,b)=>b.at-a.at);
+  sh.append(el("div",{cls:"sub"},[el("h3",{text:"Timeline"}),items.length?el("ul",{cls:"tl"},items.map(it=>it.k==="s"
+    ?el("li",{cls:"stage"},[el("span",{cls:"d",text:fmtDT(it.at)}),el("span",{},[el("b",{text:"Stage → "+(ST[it.h.stage]?.l||it.h.stage||it.h.status||"")}),it.h.note?document.createTextNode(" · "+it.h.note):null])])
+    :el("li",{},[el("span",{cls:"d",text:fmtDT(it.at)}),el("span",{},[el("b",{text:`${(ACT.find(x=>x.k===it.a.type)||{l:it.a.type}).l} · ${it.a.out}`}),it.a.note?el("div",{text:it.a.note}):null])]))):el("p",{cls:"hint",text:"No activity yet."})]));
+  // ---- Footer
+  const demo=el("button",{cls:"btn",type:"button",text:"Walk through scoring in Live demo"});
+  demo.addEventListener("click",()=>{const id=l.id;closeWS();renderDemoPicker();$("dmPick").value="lead:"+id;dmStep=0;showTab("dm");renderDemo();window.scrollTo({top:0});});
+  const del=el("button",{cls:"btn dan",type:"button",text:"Delete lead"}); let armed=false;
+  del.addEventListener("click",async()=>{if(!armed){armed=true;del.textContent="Click again to delete for everyone";return;} try{await db.doc("leads/"+l.id).delete();closeWS();}catch(e){fail(e);}});
+  if(l.facts!==false){
+    const o=findV(CFG.orgs,l.org), c=findV(CFG.channels,l.channel), p=findV(CFG.pages,l.page);
+    sh.append(el("div",{cls:"sub"},[el("h3",{text:"Lead profile"}),el("div",{cls:"tscroll"},el("table",{},el("tbody",{},[["Segment",o?o.l:(l.org||"–")],["Project",[l.proj==="new"?"New build":l.proj==="resurf"?"Resurfacing":"",l.courts?`${l.courts==="3"?"3–5":l.courts==="6"?"6+":l.courts} court(s)`:"",l.area?l.area+" m²":"",(l.sports||[]).join(", "),(findV(CFG.timeline,l.timeline)||{}).l].filter(Boolean).join(" · ")||"–"],["Source",[c?c.l:"",l.campaign,l.landing].filter(Boolean).join(" · ")||"–"],["Deepest page",p?`${p.tier} · ${p.l}`:"–"],["Score",`Fit ${l.fit} · Intent ${l.intent} · ${l.configVersion?"v"+l.configVersion:"defaults"}`],...(l.mql?(()=>{const reg=regionFor(l.city); const segs=expectedPlan(pbKey(l)||"mql",l.track||"std",l.base,{startMs:l.createdAt,city:l.city}); const mw=segs.find(x=>x.k==="monsoon"); return [...(l.bookedSlotAt?[["Install slot",fmtDate(l.bookedSlotAt)+(l.advanceAt?" · advance received "+fmtDate(l.advanceAt):"")]]:[]),["Monsoon region",reg?`${reg.l} · no coating ${mmddTxt(reg.from)}–${mmddTxt(reg.to)}`:"None"],["Expected handover",fmtDate(l.createdAt+sumUntil(segs,"handover")*D)+(mw?` (includes ${Math.round(mw.d)} days monsoon wait)`:"")]];})():[]),["Notes",l.notes||"–"]].map(([a,b])=>el("tr",{},[el("th",{text:a}),el("td",{text:b})])))))]));
+  }
+  sh.append(el("div",{cls:"btns"},[demo,del]));
+}
+
+/* ================= Tracker ================= */
+STAGES.forEach(s=>$("fStatus").append(el("option",{value:s.k,text:s.l})));
+function renderChannelFilter(){const f=$("fCh"),cur=f.value; f.innerHTML=""; f.append(el("option",{value:"",text:"Any channel"})); CFG.channels.forEach(c=>f.append(el("option",{value:c.v,text:c.l}))); f.value=cur;}
+["fMql","fStatus","fCh","fQ"].forEach(id=>$(id).addEventListener("input",renderTable));
+function filtered(){
+  const m=$("fMql").value, st=$("fStatus").value, ch=$("fCh").value, q=$("fQ").value.toLowerCase();
+  return leads.filter(l=>(m===""||String(+!!l.mql)===m)&&(!st||stageOf(l)===st)&&(!ch||l.channel===ch)&&(!q||[l.name,l.company,l.city,l.dealer].join(" ").toLowerCase().includes(q)));
+}
+function renderTable(){
+  const body=$("leadBody"); body.innerHTML=""; const rows=filtered();
+  $("leadEmpty").hidden=leads.length>0;
+  if(leads.length&&!rows.length) body.append(el("tr",{},el("td",{colspan:"10",cls:"hint",text:"No leads match these filters."})));
+  rows.forEach(l=>{
+    const o=findV(CFG.orgs,l.org), c=findV(CFG.channels,l.channel), na=nextAction(l);
+    const tr=el("tr",{cls:"row",tabindex:"0"},[
+      el("td",{cls:"mono",text:fmtDate(l.createdAt)}),
+      el("td",{},[el("div",{text:l.name||"–"}),el("div",{cls:"hint",text:[l.company,l.city].filter(Boolean).join(" · ")})]),
+      el("td",{text:o?(["1","2","3"].includes(o.tier)?`T${o.tier} `:"")+o.l.split(" (")[0]:(l.org||"–")}),
+      el("td",{text:c?c.l.split(" (")[0]:(l.channel||"–")}),
+      el("td",{cls:"n",text:String(l.fit)}),el("td",{cls:"n",text:String(l.intent)}),
+      el("td",{cls:"mono",text:l.cell+(l.configVersion!==META.version?"*":""),title:l.configVersion!==META.version?`Scored with ${l.configVersion?"v"+l.configVersion:"defaults"}`:null}),
+      el("td",{},el("span",{cls:"pill "+(l.mql?"p-mql":"p-no"),text:l.mql?(l.fastTrack?"Yes · fast":"Yes"):"No"})),
+      el("td",{},stagePill(stageOf(l))),
+      el("td",{cls:na&&na.late?"warn":"",text:na?`${dueTxt(na.due)||na.t.slice(0,40)}`:"–"})]);
+    const open=()=>openWS(l.id); tr.addEventListener("click",open); tr.addEventListener("keydown",e=>{if(e.key==="Enter")open();});
+    body.append(tr);
+  });
+}
+function renderStats(){
+  const R=CFG.rules, n=leads.length, mq=leads.filter(l=>l.mql);
+  const decided=mq.filter(l=>maxRank(l)>=RANK.sql||["junk","notready"].includes(stageOf(l))), junk=mq.filter(l=>stageOf(l)==="junk").length, won=leads.filter(l=>maxRank(l)>=RANK.won).length;
+  $("kLeads").textContent=n; $("kLeadsSub").textContent=n?`${leads.filter(l=>Date.now()-l.createdAt<30*D).length} in the last 30 days`:"No leads yet";
+  $("kMql").textContent=mq.length; $("kMqlSub").textContent=n?`${Math.round(mq.length/n*100)}% of leads`:" ";
+  const acc=decided.length?Math.round((decided.length-junk)/decided.length*100):null;
+  $("kAcc").textContent=acc==null?"–":acc+"%"; $("kAcc").style.color=acc==null?"":(acc>=R.acceptTarget?"var(--green)":"var(--red)");
+  $("kAccSub").textContent=`Not junk, of ${decided.length} worked · target ${R.acceptTarget}%`;
+  $("kWon").textContent=won; $("kWonSub").textContent=mq.length?`${Math.round(won/mq.length*100)}% of MQLs`:" ";
+  const counts={}; leads.forEach(l=>counts[l.cell]=(counts[l.cell]||0)+1); gridInto($("trGrid"),CFG,{counts});
+  const t=$("chPerf"); t.innerHTML="";
+  t.append(el("thead",{},el("tr",{},["Channel","Leads","MQLs","SQLs","Won"].map(h=>el("th",{text:h})))));
+  const tb=el("tbody"), by={};
+  leads.forEach(l=>{const k=l.channel||"unknown";by[k]=by[k]||{n:0,m:0,a:0,w:0};by[k].n++;if(l.mql)by[k].m++;if(maxRank(l)>=RANK.sql)by[k].a++;if(maxRank(l)>=RANK.won)by[k].w++;});
+  const ks=Object.keys(by).sort((a,b)=>by[b].n-by[a].n);
+  if(!ks.length) tb.append(el("tr",{},el("td",{colspan:"5",cls:"hint",text:"Channel results appear once leads are saved."})));
+  ks.forEach(k=>tb.append(el("tr",{},[el("td",{text:(findV(CFG.channels,k)||{l:k}).l.split(" (")[0]}),...["n","m","a","w"].map(f=>el("td",{cls:"n",text:String(by[k][f])}))])));
+  t.append(tb);
+}
+function toCSV(){
+  const cols=[["Created","createdAt"],["Name","name"],["Organisation","company"],["Email","email"],["Phone","phone"],["City","city"],["Segment","org"],["Role","role"],["Project","proj"],["Courts","courts"],["Area m2","area"],["Sports","sports"],["Timeline","timeline"],["Channel","channel"],["Query intent","qintent"],["Campaign","campaign"],["Landing page","landing"],["Deepest page","page"],["Behaviours","beh"],["Fit","fit"],["Intent","intent"],["Cell","cell"],["MQL","mql"],["Fast-track","fastTrack"],["Playbook","_pb"],["Stage","_stage"],["Track","track"],["Dealer","dealer"],["Dealer accepted","dealerAcceptedAt"],["Est. value INR","value"],["Install slot","bookedSlotAt"],["Contact attempts","attempts"],["Next action","_na"],["Next action due","_due"],["Lost reason","lostReason"],["Junk reason","rejectReason"],["Sales team owner","assigned"],["Settings version","configVersion"],["Notes","notes"]];
+  const q=v=>{v=Array.isArray(v)?v.join("; "):v==null?"":String(v);return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;};
+  const lab=(arr,v)=>(findV(arr,v)||{l:v||""}).l;
+  const lines=[cols.map(c=>c[0]).join(",")];
+  filtered().forEach(l=>{const na=nextAction(l);lines.push(cols.map(([,k])=>{let v=l[k];
+    if(k==="createdAt")v=new Date(v).toISOString().slice(0,10); if(k==="bookedSlotAt")v=v?new Date(v).toISOString().slice(0,10):""; if(k==="dealerAcceptedAt")v=v?new Date(v).toISOString().slice(0,16).replace("T"," "):""; if(k==="org")v=lab(CFG.orgs,v); if(k==="channel")v=lab(CFG.channels,v); if(k==="page")v=lab(CFG.pages,v); if(k==="timeline")v=lab(CFG.timeline,v);
+    if(k==="beh")v=(v||[]).map(x=>lab(CFG.beh,x)); if(k==="mql"||k==="fastTrack")v=v?"Yes":"No"; if(k==="configVersion")v=v?"v"+v:"defaults";
+    if(k==="_pb")v=pbKey(l)?CFG.playbooks[pbKey(l)].label:""; if(k==="_stage")v=ST[stageOf(l)]?.l; if(k==="_na")v=na?na.t:""; if(k==="_due")v=na&&na.due?new Date(na.due).toISOString().slice(0,16).replace("T"," "):"";
+    return q(v);}).join(","));});
+  return lines.join("\n");
+}
+$("csvBtn").addEventListener("click",async()=>{
+  const csv=toCSV(); let dl=null; try{dl=await claude.use("downloads");}catch(e){}
+  if(dl){try{await dl.save({filename:`mql-leads-${new Date().toISOString().slice(0,10)}.csv`,data:csv});$("csvBox").hidden=true;return;}catch(e){if(e&&e.code==="declined")return;}}
+  $("csvText").value=csv; $("csvBox").hidden=false; $("csvText").select();
+});
+
+/* ================= Apply config everywhere ================= */
+let keepDraft=false;
+let wsSnap="";
+function renderLeadsViews(){renderCalibration();renderTable();renderStats();renderBoard();renderDemoPicker();updateSaveBar();if(selected){const j=JSON.stringify(leads.find(x=>x.id===selected)||null);if(j!==wsSnap){wsSnap=j;renderWS();}}}
+function applyConfig(){
+  $("verChip").textContent=verLabel();
+  renderFramework(); renderTimelineControls(); renderSalesCycle(); renderFormOptions(); renderChannelFilter(); renderScorecard();
+  renderDemoPicker(); renderDemo(); renderHistory(); renderLeadsViews();
+  if(!keepDraft){draft=clone(CFG); renderSettings();} else updateSaveBar();
+}
+
+/* ================= Boot ================= */
+applyConfig();
+setInterval(()=>{if(!$("v-pl").hidden)renderBoard();},60000);
+(async()=>{
+  if(!window.claude||!claude.use){banner("This copy can score leads but can't save them. Open it on claude.ai to use the shared pipeline and settings.");updateSaveBar();return;}
+  try{user=await claude.use("user");}catch(e){}
+  try{db=await claude.use("db");}catch(e){db=null;}
+  if(!db){banner("Sign in to claude.ai to save leads, work the pipeline and save settings. Scoring still works with the default settings.");updateSaveBar();return;}
+  try{canEditSettings=user?!!(await user.canEdit()):false;}catch(e){}
+  try{if(user&&(await user.can("data.write"))===false){banner("You have view-only access: you can browse and run the demo but not save or update leads."); $("saveBtn").disabled=true;}}catch(e){}
+  updateSaveBar();
+  db.doc("settings/current").onSnapshot(snap=>{
+    const d=snap.exists?snap.data():null;
+    keepDraft=isDirty();
+    if(d&&d.config){CFG=normalize(d.config); META={version:d.version||0,at:d.at||null,note:d.note||""};}
+    else {CFG=normalize(DEFAULTS); META={version:0,at:null,note:"Defaults"};}
+    applyConfig(); keepDraft=false;
+  },err=>banner("Couldn't load scoring settings, using defaults: "+(err&&err.message||"")));
+  db.collection("settings_history").onSnapshot(snap=>{verHistory=snap.docs.map(d=>d.data()).sort((a,b)=>(b.version||0)-(a.version||0)); renderHistory();},()=>{});
+  db.collection("leads").onSnapshot(snap=>{
+    leads=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    renderLeadsViews();
+    if(selected&&!leads.some(l=>l.id===selected)) closeWS();
+  },err=>banner("Couldn't load the tracker: "+(err&&err.message||"try reloading.")));
+})();
+
+</script>
+
+</body></html>
